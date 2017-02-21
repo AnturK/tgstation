@@ -39,6 +39,7 @@
 	var/stage = END_STAGE //The stage of the weather, from 1-4
 
 	var/probability = FALSE //Percent chance to happen if there are other possible weathers on the z-level
+	var/enabled = TRUE
 
 /datum/weather/New()
 	..()

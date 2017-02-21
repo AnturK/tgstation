@@ -24,7 +24,7 @@ var/datum/subsystem/weather/SSweather
 		var/list/possible_weather_for_this_z = list()
 		for(var/V in existing_weather)
 			var/datum/weather/WE = V
-			if(WE.target_z == Z && WE.probability) //Another check so that it doesn't run extra weather
+			if(WE.enabled && WE.target_z == Z && WE.probability) //Another check so that it doesn't run extra weather
 				possible_weather_for_this_z[WE] = WE.probability
 		var/datum/weather/W = pickweight(possible_weather_for_this_z)
 		run_weather(W.name, Z)
@@ -47,3 +47,19 @@ var/datum/subsystem/weather/SSweather
 
 /datum/subsystem/weather/proc/make_z_eligible(zlevel)
 	eligible_zlevels |= zlevel
+
+
+//Stops weather type from happening randomly
+/datum/subsystem/weather/proc/disable_weather(wtype)
+	if(!wtype)
+		return
+	for(var/datum/weather/W in existing_weather)
+		if(istype(W,wtype))
+			W.enabled = FALSE
+
+/datum/subsystem/weather/proc/enable_weather(wtype)
+	if(!wtype)
+		return
+	for(var/datum/weather/W in existing_weather)
+		if(istype(W,wtype))
+			W.enabled = TRUE

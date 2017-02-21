@@ -572,3 +572,10 @@ get_true_breath_pressure(pp) --> gas_pp = pp/breath_pp*total_moles()
 10/20*5 = 2.5
 10 = 2.5/5*20
 */
+
+/datum/gas_mixture/proc/to_gasstring(temp = TRUE)
+	. = ""
+	for(var/id in gases)
+		. += "[id]=[G[id][MOLES]]"
+	if(temp)
+		. += "temp=[temperature]"
