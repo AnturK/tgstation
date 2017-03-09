@@ -14,6 +14,7 @@
 	var/phase_values
 	var/current_phase = 0
 	var/phases = 1
+	var/technobabble
 
 #define RELIC_PLUS
 #define RELIC_MINUS
@@ -24,22 +25,22 @@
 /obj/item/weapon/relic/proc/hot_cold_message(value,target)
 	var/diff = abs(value - target)
 	switch(diff)
-		if(0 to 1)//bingo
-			return "text"
-		if(2 to 10)//hot
-			return "text2"
-		if(11 to 20)//close
-			return "text3"
+		if(0 to 1)
+			return "[src] [technobabble] synchronization : High."
+		if(2 to 10)
+			return "[src] [technobabble] synchronization : Medium."
+		if(11 to 20)
+			return "[src] [technobabble] synchronization : Low."
 		if(21 to 40)
-			return "text4"
+			return "[src] [technobabble] synchronization : Critical."
 		if(41 to 60)
-			return "text5"
+			return "[src] emits a faint noise."
 		else
-			return "text6"
+			return "Nothing happens."
 
 /obj/item/weapon/relic/Initialize(mapload)
 	var/actions = list(RELIC_PLUS,RELIC_MINUS,RELIC_RANDOM,RELIC_FLIP,RELIC_ACTIVATE)
-	var/tools = list(screwdriver,wrench,multiool,crowbar,welder)
+	var/tools = list(/obj/item/weapon/screwdriver,/obj/item/weapon/wrench,/obj/item/weapon/multiool,/obj/item/weapon/crowbar,/obj/item/weapon/welder)
 
 	act_mapping = list()
 	for(var/tool_type in tools)
@@ -50,26 +51,43 @@
 	for(var/phase in 1 to phases)
 		phase_values.Add(rand(0,100))
 		phase_targs.Add(rand(0,100))
+	
+	technobabble = pick("polarity","phase matrix","subspace frequency","tick period")
 
 /obj/item/weapon/relic/proc/tool_act(act,user)
 	switch(act)
 		if(RELIC_PLUS)
 			phase_values[current_phase] = Min(phase_values[current_phase]+1,100)
+			user << "You increase [src] [technobabble]."
 		if(RELIC_MINUS)
 			phase_values[current_phase] = Max(phase_values[current_phase]-1,0)
+			user << "You decrease [src] [technobabble]."
 		if(RELIC_FLIP)
 			phase_values[current_phase] = 100 - phase_values[current_phase]
+			user << "You reverse [src] [technobabble]."
 		if(RELIC_RANDOM)
 			phase_values[current_phase] = rand(0,100)
+			user << "You scramble [src] [technobabble]."
 		if(RELIC_ACTIVATE)
 			try_activating(user)
+
+/obj/item/weapon/relic/proc/effect(mob/user,phase)
+	playsound(loc,'sound/machines/ding.ogg',50,1)
+
+/obj/item/weapon/relic/attacked_by(obj/item/I, mob/living/user)
+	for(var/tool_type in act_mapping)
+		if(istype(I,tool_type))
+			tool_act(act_mapping[tool_type],user)
+			return
+	return ..()
 
 /obj/item/weapon/relic/proc/try_activating(user)
 	if(phase_targets[current_phase] == phase_values[current_phase])
 		if(phases > current_phase)
 			user << "[src] starts working [phase > 0 ? "better" : ""]!"
 			current_phase++
-			reveal()
+			if(!revealed)
+				reveal()
 	else
 		user << hot_cold_message(phase_values[current_phase],phase_targets[current_phase])
 
@@ -84,7 +102,6 @@
 	revealed = TRUE
 	name = realName
 	cooldownMax = rand(60,300)
-	realProc = pick("teleport","explode","rapidDupe","petSpray","flash","clean","corgicannon")
 	origin_tech = pick("engineering=[rand(2,5)]","magnets=[rand(2,5)]","plasmatech=[rand(2,5)]","programming=[rand(2,5)]","powerstorage=[rand(2,5)]")
 
 /obj/item/weapon/relic/attack_self(mob/user)
@@ -94,38 +111,40 @@
 			return
 		else if(src.loc == user)
 			cooldown = TRUE
-			call(src,realProc)(user,phase)
-			spawn(cooldownMax)
-				cooldown = FALSE
+			effect(user,phase)
+			addtimer(CALLBACK(src,./reset_timer),cooldownMax,TIMER_UNIQUE)
 	else
 		user << "<span class='notice'>You aren't quite sure what to do with this yet.</span>"
 
+/obj/item/weapon/relic/proc/reset_timer()
+	cooldown = FALSE
+
 //////////////// RELIC PROCS /////////////////////////////
 
-/obj/item/weapon/relic/proc/throwSmoke(turf/where)
+/obj/item/weapon/relic/smoke/proc/effect(mob/user,phase)
 	var/datum/effect_system/smoke_spread/smoke = new
-	smoke.set_up(0, get_turf(where))
+	smoke.set_up(0, get_turf(user))
 	smoke.start()
 
-/obj/item/weapon/relic/proc/corgicannon(mob/user,phase)
+/obj/item/weapon/relic/corgicannon/proc/effect(mob/user,phase)
 	playsound(src.loc, "sparks", rand(25,50), 1)
 	var/mob/living/simple_animal/pet/dog/corgi/C = new/mob/living/simple_animal/pet/dog/corgi(get_turf(user))
 	C.throw_at(pick(oview(10,user)), 10, rand(3,8), callback = CALLBACK(src, .throwSmoke, C))
 	warn_admins(user, "Corgi Cannon", 0)
 
-/obj/item/weapon/relic/proc/clean(mob/user,phase)
+/obj/item/weapon/relic/clean/proc/effect(mob/user,phase)
 	playsound(src.loc, "sparks", rand(25,50), 1)
 	var/obj/item/weapon/grenade/chem_grenade/cleaner/CL = new/obj/item/weapon/grenade/chem_grenade/cleaner(get_turf(user))
 	CL.prime()
 	warn_admins(user, "Smoke", 0)
 
-/obj/item/weapon/relic/proc/flash(mob/user,phase)
+/obj/item/weapon/relic/flash/proc/effect(mob/user,phase)
 	playsound(src.loc, "sparks", rand(25,50), 1)
 	var/obj/item/weapon/grenade/flashbang/CB = new/obj/item/weapon/grenade/flashbang(get_turf(user))
 	CB.prime()
 	warn_admins(user, "Flash")
 
-/obj/item/weapon/relic/proc/petSpray(mob/user,phase)
+/obj/item/weapon/relic/petspray/proc/effect(mob/user,phase)
 	var/message = "<span class='danger'>[src] begans to shake, and in the distance the sound of rampaging animals arises!</span>"
 	visible_message(message)
 	user << message
@@ -140,7 +159,7 @@
 		user << "<span class='warning'>[src] falls apart!</span>"
 		qdel(src)
 
-/obj/item/weapon/relic/proc/rapidDupe(mob/user,phase)
+/obj/item/weapon/relic/rapiddupe/proc/effect(mob/user,phase)
 	audible_message("[src] emits a loud pop!")
 	var/list/dupes = list()
 	var/counter
@@ -161,7 +180,7 @@
 			qdel(R)
 	warn_admins(user, "Rapid duplicator", 0)
 
-/obj/item/weapon/relic/proc/explode(mob/user,phase)
+/obj/item/weapon/relic/explode/proc/effect(mob/user,phase)
 	user << "<span class='danger'>[src] begins to heat up!</span>"
 	spawn(rand(35,100))
 		if(src.loc == user)
@@ -170,7 +189,7 @@
 			warn_admins(user, "Explosion")
 			qdel(src) //Comment this line to produce a light grenade (the bomb that keeps on exploding when used)!!
 
-/obj/item/weapon/relic/proc/teleport(mob/user,phase)
+/obj/item/weapon/relic/teleport/proc/effect(mob/user,phase)
 	user << "<span class='notice'>The [src] begins to vibrate!</span>"
 	spawn(rand(10,30))
 		var/turf/userturf = get_turf(user)
@@ -180,6 +199,15 @@
 			do_teleport(user, userturf, 8, asoundin = 'sound/effects/phasein.ogg')
 			throwSmoke(get_turf(user))
 			warn_admins(user, "Teleport", 0)
+
+
+/obj/item/weapon/relic/random
+
+/obj/item/weapon/relic/random/New()
+	..()
+	var real_type = pick(subtypesof(/obj/item/weapon/relic) - type)
+    new T(get_turf(src))
+    qdel(src)
 
 //Admin Warning proc for relics
 /obj/item/weapon/relic/proc/warn_admins(mob/user, RelicType, priority = 1)
