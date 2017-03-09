@@ -88,6 +88,8 @@
 			current_phase++
 			if(!revealed)
 				reveal()
+			if(current_phase < phases)
+				user << "[src] is not completely tuned"
 	else
 		user << hot_cold_message(phase_values[current_phase],phase_targets[current_phase])
 
@@ -122,9 +124,13 @@
 //////////////// RELIC PROCS /////////////////////////////
 
 /obj/item/weapon/relic/smoke/proc/effect(mob/user,phase)
-	var/datum/effect_system/smoke_spread/smoke = new
-	smoke.set_up(0, get_turf(user))
-	smoke.start()
+	switch(phase)
+		if(1)
+			var/datum/effect_system/smoke_spread/smoke = new
+			smoke.set_up(0, get_turf(user))
+			smoke.start()
+		if(2 to INFINITY)
+
 
 /obj/item/weapon/relic/corgicannon/proc/effect(mob/user,phase)
 	playsound(src.loc, "sparks", rand(25,50), 1)
