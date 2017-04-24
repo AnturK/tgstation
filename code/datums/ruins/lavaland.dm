@@ -189,3 +189,29 @@
 	suffix = "lavaland_surface_swarmer_crash.dmm"
 	allow_duplicates = FALSE
 	cost = 20
+
+
+/datum/map_template/ruin/lavaland/rad_bunker_surface
+	name = "Rad Bunker Entrance"
+	id = "radbunker_0"
+	description = "Where does the hatch lead?"
+	suffix = "lavaland_surface_radbunker.dmm"
+	allow_duplicates = FALSE
+	cost = 5
+
+/datum/map_template/ruin/lavaland/rad_bunker_surface/load(turf/T, centered = FALSE)
+	. = ..()
+	var/map_template/F1 = locate(/datum/map_template/ruin/lavaland/rad_bunker_floor1) in SSmapping.map_templates
+	F1.load_new_z()
+	var/map_template/F2 = locate(/datum/map_template/ruin/lavaland/rad_bunker_floor1) in SSmapping.map_templates
+	F2.load_new_z()
+
+/datum/map_template/ruin/lavaland/rad_bunker_floor1
+	name = "Rad Bunker Floor 1"
+	id = "radbunker_1"
+	random = FALSE
+
+/datum/map_template/ruin/lavaland/rad_bunker_floor2
+	name = "Rad Bunker Floor 2"
+	id = "radbunker_2"
+	random = FALSE

@@ -8,6 +8,7 @@
 
 	var/cost = null
 	var/allow_duplicates = TRUE
+	var/random = TRUE // Can be placed during randomized seeding.
 
 	var/prefix = null
 	var/suffix = null
