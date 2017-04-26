@@ -4,6 +4,7 @@
 
 	silent = 0
 	losebreath = 0
+	stop_hallucinations()
 
 	if(!gibbed)
 		emote("deathgasp")

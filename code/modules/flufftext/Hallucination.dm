@@ -1,57 +1,87 @@
-/*
-Ideas for the subtle effects of hallucination:
-
-Light up oxygen/plasma indicators (done)
-Cause health to look critical/dead, even when standing (done)
-Characters silently watching you
-Brief flashes of fire/space/bombs/c4/dangerous shit (done)
-Items that are rare/traitorous/don't exist appearing in your inventory slots (done)
-Strange audio (should be rare) (done)
-Gunshots/explosions/opening doors/less rare audio (done)
-
-*/
-
 #define SCREWYHUD_NONE 0
 #define SCREWYHUD_CRIT 1
 #define SCREWYHUD_DEAD 2
 #define SCREWYHUD_HEALTHY 3
+
 
 /mob/living/carbon
 	var/image/halimage
 	var/image/halbody
 	var/obj/halitem
 	var/hal_screwyhud = SCREWYHUD_NONE
-	var/handling_hal = 0
+	var/list/datum/hallucination/hallucinations = list()
+
+/mob/living/carbon/proc/stop_hallucinations()
+	for(var/datum/hallucination/H in hallucinations)
+		qdel(H)
 
 /mob/living/carbon/proc/handle_hallucinations()
-	if(handling_hal)
-		return
-
 	//Least obvious
-	var/list/minor = list("sounds"=25,"bolts_minor"=5,"whispers"=15,"message"=10,"hudscrew"=15)
+	var/static/list/minor = list("sounds"=25,"bolts_minor"=5,"whispers"=15,"message"=10,"hudscrew"=15)
 	//Something's wrong here
-	var/list/medium = list("fake_alert"=15,"items"=10,"items_other"=10,"dangerflash"=10,"bolts"=5,"flood"=5,"husks"=10,"battle"=15,"self_delusion"=10)
+	var/static/list/medium = list("fake_alert"=15,"items"=10,"items_other"=10,"dangerflash"=10,"bolts"=5,"flood"=5,"husks"=10,"battle"=15,"self_delusion"=10)
 	//AAAAH
-	var/list/major = list("fake"=20,"death"=10,"xeno"=10,"singulo"=10,"borer"=10,"delusion"=20,"koolaid"=10)
+	var/static/list/major = list("fake"=20,"death"=10,"xeno"=10,"singulo"=10,"borer"=10,"delusion"=20,"koolaid"=10)
 
-	handling_hal = 1
-	while(hallucination > 20)
-		sleep(rand(200,500)/(hallucination/25))
-		if(prob(20))
+	var/max_minor = max(1,hallucination/10)
+	var/max_medium = max(1,hallucination/20)
+	var/max_major = max(1,hallucination/30)
+	var/current_target = hallucination > 20 : max(1,hallucination/10) : 0 
+	
+	if(hallucinations.len < current_target)
+		// add new one with if enough time have passed
+		if(next_hallucination > world.time)
 			continue
-		var/list/current = list()
-		switch(rand(100))
-			if(1 to 50)
-				current = minor
-			if(51 to 85)
-				current = medium
-			if(86 to 100)
-				current = major
+		var/list/possible = list()
+		var/current_minor = 0
+		if(current_minor < max_minor)
+			possible += "minor"
+		var/current_medium = 0
+		if(current_medium < max_medium)
+			possible += "medium"
+		var/current_major = 0
+		if(current_major < max_major)
+			possible += "major"
+		var/chosen = pick(possible)
+		switch(chosen)
+			if("minor")
+				chosen = pickweight(minor)
+			if("medium")
+				chosen = pickweight(medium)
+			if("major")
+				chosen = pickweight(major)
+		var/datum/hallucination/H = new chosen(src)
+		next_hallucination = world.time + rand(200,400) - hallucination
 
-		var/halpick = pickweight(current)
 
-		hallucinate(halpick)
-	handling_hal = 0
+	if(hallucinations.len > current_target)
+		var/datum/hallucination/H = pick(hallucinations)
+		qdel(H)
+
+/datum/hallucination
+	var/mob/living/carbon/target
+	var/manual = FALSE
+
+/datum/hallucination/New(mob/living/carbon/target)
+	if(check_target(target))
+		src.target = target
+		target.hallucinations += src
+	else
+		stack_trace("Hallucination called on invalid mob")
+		qdel(src)
+
+/datum/hallucination/Destroy()
+	if(target)
+		target.hallucinations -= src
+	. = ..()
+
+/datum/hallucination/proc/check_target(mob/living/carbon/T)
+	if(!istype(T))
+		return FALSE
+	if(T.stat == DEAD)
+		return FALSE
+	return TRUE
+
 
 /obj/effect/hallucination
 	invisibility = INVISIBILITY_OBSERVER
@@ -75,7 +105,8 @@ Gunshots/explosions/opening doors/less rare audio (done)
 	..()
 	target = T
 	current_image = GetImage()
-	if(target.client) target.client.images |= current_image
+	if(target.client) 
+		target.client.images |= current_image
 
 /obj/effect/hallucination/simple/proc/GetImage()
 	var/image/I = image(image_icon,src,image_state,image_layer,dir=src.dir)
@@ -87,10 +118,12 @@ Gunshots/explosions/opening doors/less rare audio (done)
 
 /obj/effect/hallucination/simple/proc/Show(update=1)
 	if(active)
-		if(target.client) target.client.images.Remove(current_image)
+		if(target.client)
+			target.client.images.Remove(current_image)
 		if(update)
 			current_image = GetImage()
-		if(target.client) target.client.images |= current_image
+		if(target.client)
+			target.client.images |= current_image
 
 /obj/effect/hallucination/simple/update_icon(new_state,new_icon,new_px=0,new_py=0)
 	image_state = new_state

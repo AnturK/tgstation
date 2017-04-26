@@ -377,7 +377,7 @@
 		adjust_drugginess(-1)
 
 	if(hallucination)
-		spawn handle_hallucinations()
+		handle_hallucinations()
 		hallucination = max(hallucination-2,0)
 
 //used in human and monkey handle_environment()
