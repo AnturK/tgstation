@@ -246,7 +246,7 @@
 /obj/machinery/shuttle_manipulator/proc/load_template(
 	datum/map_template/shuttle/S)
 	// load shuttle template, centred at shuttle import landmark,
-	var/turf/landmark_turf = get_turf(locate("landmark*Shuttle Import"))
+	var/turf/landmark_turf = get_turf(locate("Shuttle Import"))
 	S.load(landmark_turf, centered = TRUE)
 
 	var/affected = S.get_affected_turfs(landmark_turf, centered=TRUE)
