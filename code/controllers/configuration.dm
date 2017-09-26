@@ -579,10 +579,8 @@ GLOBAL_PROTECT(config_dir)
 				if("debug_admin_hrefs")
 					debug_admin_hrefs = TRUE
 				else
-#if DM_VERSION > 511
-#error Replace the line below with WRITE_FILE(GLOB.config_error_log, "Unknown setting in configuration: '[name]'")
-#endif
-					HandleCommsConfig(name, value)	//TODO: Deprecate this eventually
+					WRITE_FILE(GLOB.config_error_log, "Unknown setting in configuration: '[name]'")
+					//HandleCommsConfig(name, value)	//TODO: Deprecate this eventually
 		else if(type == "comms")
 			HandleCommsConfig(name, value)
 		else if(type == "game_options")
