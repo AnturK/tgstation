@@ -8,6 +8,7 @@
             width: 600px;
             height: 400px;
             border: 1px solid lightgray;
+            background-color: #272727;
         }
     </style>
 </head>
@@ -42,15 +43,16 @@
     };
     var options = {
         nodes:{
-            shape:"diamond"
+            shape:"diamond",
+            font:{
+                color:"#ffffff"
+            }
         },
         groups: {
-            researched: {color:{background:'palegreen'}, borderWidth:3}
+            researched: {color:{background:'palegreen',highlight:{background:'palegreen'}}, borderWidth:3}
         }
 
     };
-    
-
     // initialize your network!
     var network = new vis.Network(container, data, options);
 </script>
