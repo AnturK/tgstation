@@ -28,3 +28,15 @@
 	var/discount = boost_item_paths[host.boosted_nodes[src]]
 	actual_cost = research_cost - discount
 	return actual_cost
+
+
+/proc/generate_graph_data()
+	var/nodes = ""
+	var/edges = ""
+
+	for(var/datum/techweb_node/N in SSresearch.all_nodes)
+		nodes += "{id: [N.id], label:[N.display_name]},\n"
+		for(var/datum/techweb_node/X in unlocks)
+			edges += "{from: [N.id], to:[X.id]},\n"
+	
+	return nodes
