@@ -17,18 +17,19 @@
 <script type="text/javascript">
     // create an array with nodes
     var nodes = new vis.DataSet([
-        {id: "base", label: 'Starting Tech'},
+        {id: "base", label: 'Start'},
         {id: "biotech", label: 'Biotech'},
-        {id: 2, label: 'Node 3'},
-        {id: 4, label: 'Node 4'},
-        {id: 5, label: 'Node 5'}
+        {id: "adv_biotech", label: 'Advanced Biotech', group: "researched"},
+        {id: "adv_datatheory", label: 'Advanced Data Theory'},
+        {id: "datatheory", label: 'Data Theory'}
     ]);
 
     // create an array with edges
     var edges = new vis.DataSet([
         {from: "base", to: "biotech"},
-        {from: 2, to: 4},
-        {from: 2, to: 5}
+        {from: "biotech", to: "adv_biotech"},
+        {from: "base", to: "datatheory"},
+        {from: "datatheory", to: "adv_datatheory"}
     ]);
 
     // create a network
@@ -39,7 +40,16 @@
         nodes: nodes,
         edges: edges
     };
-    var options = {};
+    var options = {
+        nodes:{
+            shape:"diamond"
+        },
+        groups: {
+            researched: {color:{background:'palegreen'}, borderWidth:3}
+        }
+
+    };
+    
 
     // initialize your network!
     var network = new vis.Network(container, data, options);
