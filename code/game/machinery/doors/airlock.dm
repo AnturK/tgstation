@@ -87,7 +87,7 @@
 
 	var/cyclelinkeddir = 0
 	var/obj/machinery/door/airlock/cyclelinkedairlock
-	var/shuttledocked = 0
+	var/shuttledocked = TRUE // False if we're mid shuttle move.
 	var/delayed_close_requested = FALSE // TRUE means the door will automatically close the next time it's opened.
 
 	explosion_block = 1
@@ -275,13 +275,16 @@
 				if(G.siemens_coefficient)//not insulated
 					hallucinate_shock(H)
 					return
+	try_cycling(user)
+	..()
+
+/obj/machinery/door/airlock/proc/try_cycling(mob/user)
 	if (cyclelinkedairlock)
-		if (!shuttledocked && !emergency && !cyclelinkedairlock.shuttledocked && !cyclelinkedairlock.emergency && allowed(user))
+		if (shuttledocked && !emergency && cyclelinkedairlock.shuttledocked && !cyclelinkedairlock.emergency && allowed(user))
 			if(cyclelinkedairlock.operating)
 				cyclelinkedairlock.delayed_close_requested = TRUE
 			else
 				addtimer(CALLBACK(cyclelinkedairlock, .proc/close), 2)
-	..()
 
 /obj/machinery/door/airlock/proc/hallucinate_shock(mob/living/user)
 	var/image/shock_image = image(user, user, dir = user.dir)

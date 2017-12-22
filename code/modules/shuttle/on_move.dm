@@ -152,17 +152,17 @@ All ShuttleMove procs go here
 
 /obj/machinery/door/airlock/beforeShuttleMove(turf/newT, rotation, move_mode)
 	. = ..()
-	shuttledocked = 0
+	shuttledocked = FALSE
 	for(var/obj/machinery/door/airlock/A in range(1, src))
-		A.shuttledocked = 0
+		A.shuttledocked = FALSE
 		A.air_tight = TRUE
 		INVOKE_ASYNC(A, /obj/machinery/door/.proc/close)
 
 /obj/machinery/door/airlock/afterShuttleMove(turf/oldT, list/movement_force, shuttle_dir, shuttle_preferred_direction, move_dir, rotation)
 	. = ..()
-	shuttledocked =  1
+	shuttledocked =  TRUE
 	for(var/obj/machinery/door/airlock/A in range(1, src))
-		A.shuttledocked = 1
+		A.shuttledocked = TRUE
 
 /obj/machinery/camera/beforeShuttleMove(turf/newT, rotation, move_mode)
 	. = ..()
