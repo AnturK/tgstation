@@ -812,6 +812,7 @@
 #include "code\game\objects\items\airlock_painter.dm"
 #include "code\game\objects\items\apc_frame.dm"
 #include "code\game\objects\items\blueprints.dm"
+#include "code\game\objects\items\boardgame.dm"
 #include "code\game\objects\items\body_egg.dm"
 #include "code\game\objects\items\bodybag.dm"
 #include "code\game\objects\items\candle.dm"
