@@ -45,7 +45,10 @@
 		ui = new(user, src, ui_key, "boardgame", name, 440, 650, master_ui, state)
 		ui.open()
 
-/obj/item/boardgame/ui_data()
+/obj/item/boardgame/ui_data(mob/user)
+	var/list/data = list()
+	data["game_started"] = game_started
+	data[]
 
 // [BOARD][PLAYER PANEL]
 // 
@@ -69,9 +72,13 @@
 	else
 		to_chat(player,"<span class='warning'>No free spots left!</span>")
 
-/datum/boardgame/proc/on_player_read(mob/player)
+/datum/boardgame/proc/on_player_ready(mob/player)
 	if(player in players)
 		ready_state[player] = TRUE
+
+
+/datum/boardgame/proc/check_endgame()
+	return FALSE
 
 //Will happen once as soon as all players join and ready up
 /datum/boardgame/proc/on_setup()
@@ -88,7 +95,3 @@
 //After command executes
 /datum/boardgame/proc/after_move()
 	return
-
-/datum/boardgame/proc/
-
-/datum/boardgame/cursed
