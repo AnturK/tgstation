@@ -1,3 +1,7 @@
-<link rel='ractive' href='./boardgame_common.ract'>
-<boardgame_common/>
+<link rel='ractive' href='./boardgame.ract'>
+<boardgame/>
+
+<div>
+HERE GOES GAME REPRESENTATION
+</div>
 
