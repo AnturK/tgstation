@@ -1,17 +1,36 @@
 // Game started ? Whose turn it is / commands + LOG
 // Game not started ? Player list / join/ready buttons
-
+{{#if data.game_started}}
+<div>
+<span>Current Turn: {{ data.turn_number}} - {{active_player}}</span>
+{{#if data.my_turn}}
+	{{#each data.commands}}
+		<ui-button action='command' params='{{command}}'>{{command}}</ui-button>
+	{{/each}}
+{{/if}}
+</span>{{data.game_log}}</span>
+</div>
+{{else}}
 <div style="float: right; margin-top: 5px">
 	<ul>
 	{{#each data.players}}
-		<li>{{player_name}}</li>
-		{{#if data.user.joined}}
-			{{# if data.user.ready}}
-				<ui-button action='ready_up'>Ready!</ui-button>
-			{{/if}}
-		{{else}}
-			<ui-button action='join'>Ready!</ui-button>
-		{{/if}}
+		<li>{{name}} - {{ready ? "Ready!" : ""}}</li>
 	{{/each}}
 	</ul>
+	{{#if data.user_joined}}
+		{{#if data.user_ready}}
+			<ui-button action='quit'>Quit!</ui-button>
+			{{#if data.ready_to_start}}
+			<ui-button action='start_game'>Start!</ui-button>
+			{{/if}}
+		{{else}}
+			<ui-button action='ready'>Ready!</ui-button>
+		{{/if}}
+	{{else}}
+		{{#if data.user_can_join}}
+			<ui-button action='join'>Join!</ui-button>
+		{{/if}}
+	{{/if}}
 </div>
+{{/if}}
+
