@@ -1,0 +1,23 @@
+<link rel='ractive' href='./boardgame.ract'>
+<boardgame/>
+
+<ui-display>
+    {{#each data.game.board : n}}
+        {{#if value == "black"}}
+            <div class='go black'>[B]</div>
+        {{/if}}
+        {{#if value == "white"}}
+            <div class='go white'>[W]</div>
+        {{/if}}
+        {{#if value == "empty"}}
+            {{#if data.my_turn}}
+                <ui-button action='go_move' params='{ "coord" : {{n}} }'> X </ui-button>
+            {{else}}
+                <div class ='go empty'>[ ]</div>
+            {{/if}}
+        {{/if}}
+        {{#if n % 19 == 0}}
+            <br>
+        {{/if}}
+    {{/each}}
+</ui-display>

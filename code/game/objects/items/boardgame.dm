@@ -3,7 +3,7 @@
 	desc = "Very traditional."
 	var/set_up = FALSE
 	var/datum/boardgame/game //actual_game
-	var/gametype = /datum/boardgame
+	var/gametype = /datum/boardgame/go
 	icon = 'icons/obj/boardgames.dmi'
 	icon_state = "board_packed"
 
@@ -70,7 +70,8 @@
 		return
 	switch(action)
 		if("command")
-			if(game.make_move(user,params["command"])) //valid move
+			var/other_params = params - "command"
+			if(game.make_move(user,params["command"],other_params)) //valid move
 				game.after_move()
 		if("join")
 			try_join(user)
@@ -111,7 +112,7 @@
 		var/list/player_list = list()
 		for(var/mob/M in game.players)
 			player_list += list(list("name" = M.name, "ready" = game.ready_state[M]))
-		for(var/i in player_list.len to game.max_players)//Fill up empty spots
+		for(var/i in player_list.len to game.max_players - 1)//Fill up empty spots //todo show required red, optional/taken green
 			player_list += list(list("name" = "---","ready" = FALSE))
 		data["players"] = player_list
 		data["ready_to_start"] = game.ready_state.len >= game.min_players
@@ -179,7 +180,7 @@
 
 //command will be one of the commands from get_commands
 //return FALSE on invalid move
-/datum/boardgame/proc/make_move(mob/player,command)
+/datum/boardgame/proc/make_move(mob/player,command,parameters)
 	if(player != active_player)
 		return FALSE
 
@@ -197,3 +198,140 @@
 
 /datum/boardgame/proc/endgame()
 	game_finished = TRUE
+
+#define GO_BLACK "black"
+#define GO_WHITE "white"
+#define GO_EMPTY "empty"
+
+#define GO_PASS "pass"
+#define GO_MOVE "go_move"
+
+/datum/boardgame/go
+	name = "Go"
+	desc = "classic"
+	ui_name = "boardgame_go"
+	var/list/board //flat list of fields
+
+	var/black_player
+	var/white_player
+
+	//If the other player passed last turn
+	var/other_passed = FALSE
+	var/game_done = FALSE
+
+	var/board_size = 19
+
+/datum/boardgame/go/get_commands(mob/player)
+	return list(GO_PASS)
+
+/datum/boardgame/go/check_endgame()
+	return game_done
+
+/datum/boardgame/go/make_move(mob/user,command,parameters)
+	if(!..())
+		return FALSE
+	switch(command)
+		if(GO_PASS)
+			if(other_passed)
+				game_done = TRUE
+			else
+				other_passed = TRUE
+			return TRUE
+		if(GO_MOVE)
+			if(go_move(user,parameters))
+				other_passed = FALSE
+				return TRUE
+			return FALSE
+
+/datum/boardgame/go/on_setup()
+	board = list()
+	for(var/x in 1 to (board_size * board_size))
+		board += GO_EMPTY
+	
+	black_player = players[1]
+	//white_player = players[2]
+
+	active_player = black_player
+
+/datum/boardgame/go/get_data(mob/user)
+	var/list/game = list()
+	game["board"] = board
+	return game
+
+/datum/boardgame/go/proc/go_move(mob/user,parameters)
+	var/n = parameters["coord"]
+	var/current_color
+	if(user != active_player)
+		return FALSE
+	if(user == white_player)
+		current_color = GO_WHITE
+	else if (user == black_player)
+		current_color = GO_BLACK
+
+	if(board[n] != GO_EMPTY)
+		return FALSE
+
+	board[n] = current_color
+
+	var/list/removed_own = get_removed(current_color)
+	if(removed_own.len)
+		to_chat(user,"<span class='warning'>Invalid move.</span>")
+		return FALSE
+	perform_removal()
+
+	return TRUE
+
+/datum/boardgame/go
+	var/list/group = list() // id -> list of field numbers
+	var/list/group_freedom = list() // id -> group empty field count
+
+//returns list of field id's with captured stones
+/datum/boardgame/go/proc/get_removed(color)
+	var/list/field2group = list()
+	var/list/groups = list()
+	for(var/field in all)
+		if(field != color)
+			continue
+		if(!field2group[field])
+			make_group(field)
+
+	var/list/checked = list()
+	for(var/id in group)
+		if(group_freedom[id] == 0)
+			checked += group[id]
+	return checked
+
+/datum/boardgame/go/proc/make_group(field_number)
+	var/our_color = board[field_number]
+	var/group_id = group.len++
+	var/list/group_fields = list()
+	var/list/group_empties = list()
+	var/list/fields_to_process = list(field_number)
+	while(fields_to_process.len)
+		var/current = fields_to_process[1]
+		group_fields += current
+		group_empties |= get_neighbours(current,GO_EMPTY)
+		fields_to_process |= (get_neighbours(current,our_color) - group_fields)
+
+	groups[group_id] = group_fields
+	group_freedom = group_empties.len
+	for(var/field in group_fields)
+		field2group[field] = group_id
+
+/datum/boardgame/go/proc/get_neighbours(field,color_filter)
+	. = list()
+	var/north = field - board_size
+	if(north > 0 && board[north] == color_filter)
+		. += north
+	
+	var/east = field+1
+	if(east % board_size == field % board_size && board[east] == color_filter)
+		. += east
+	
+	var/west = field-1
+	if(west % board_size == field % board_size && board[west] == color_filter)
+		. += west
+
+	var/south = field + board_size
+	if(north <= board.len && board[north] == color_filter)
+		. += north
