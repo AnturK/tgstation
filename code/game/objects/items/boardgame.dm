@@ -222,7 +222,9 @@
 	var/board_size = 19
 
 /datum/boardgame/go/get_commands(mob/player)
-	return list(GO_PASS)
+	var/list/commands = list()
+	commands += list(list("command" = GO_PASS))
+	return commands
 
 /datum/boardgame/go/check_endgame()
 	return game_done
@@ -273,24 +275,33 @@
 
 	board[n] = current_color
 
-	var/list/removed_own = get_removed(current_color)
+	var/list/removed_own = update_groups(current_color)
 	if(removed_own.len)
 		to_chat(user,"<span class='warning'>Invalid move.</span>")
 		return FALSE
-	perform_removal()
+	perform_removal(current_color == GO_WHITE ? GO_BLACK : GO_WHITE)
 
 	return TRUE
 
+
+
+/datum/boardgame/go/proc/perform_removal(color)
+	var/list/to_be_removed = update_groups(color)
+	for(var/f in to_be_removed)
+		board[f] = GO_EMPTY
+	
 /datum/boardgame/go
-	var/list/group = list() // id -> list of field numbers
-	var/list/group_freedom = list() // id -> group empty field count
+	var/list/group = list() // group id -> list of field numbers
+	var/list/group_freedom = list() // group id -> group empty field count
+	var/list/field2group = list() // field number -> group id
 
 //returns list of field id's with captured stones
-/datum/boardgame/go/proc/get_removed(color)
-	var/list/field2group = list()
-	var/list/groups = list()
-	for(var/field in all)
-		if(field != color)
+/datum/boardgame/go/proc/update_groups(color)
+	group = list()
+	field2group = list()
+	group_freedom = list()
+	for(var/field in 1 to board.len)
+		if(board[field] != color)
 			continue
 		if(!field2group[field])
 			make_group(field)
@@ -303,17 +314,17 @@
 
 /datum/boardgame/go/proc/make_group(field_number)
 	var/our_color = board[field_number]
-	var/group_id = group.len++
+	var/group_id = "[group.len+1]"
 	var/list/group_fields = list()
 	var/list/group_empties = list()
 	var/list/fields_to_process = list(field_number)
 	while(fields_to_process.len)
-		var/current = fields_to_process[1]
+		var/current = pop(fields_to_process)
 		group_fields += current
 		group_empties |= get_neighbours(current,GO_EMPTY)
 		fields_to_process |= (get_neighbours(current,our_color) - group_fields)
 
-	groups[group_id] = group_fields
+	group[group_id] = group_fields
 	group_freedom = group_empties.len
 	for(var/field in group_fields)
 		field2group[field] = group_id
@@ -333,5 +344,5 @@
 		. += west
 
 	var/south = field + board_size
-	if(north <= board.len && board[north] == color_filter)
-		. += north
+	if(south <= board.len && board[south] == color_filter)
+		. += south

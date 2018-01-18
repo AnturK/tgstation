@@ -3,13 +3,13 @@
 
 <ui-display>
     {{#each data.game.board : n}}
-        {{#if value == "black"}}
+        {{#if data.game.board[n] == "black"}}
             <div class='go black'>[B]</div>
         {{/if}}
-        {{#if value == "white"}}
+        {{#if data.game.board[n] == "white"}}
             <div class='go white'>[W]</div>
         {{/if}}
-        {{#if value == "empty"}}
+        {{#if data.game.board[n] == "empty"}}
             {{#if data.my_turn}}
                 <ui-button action='go_move' params='{ "coord" : {{n}} }'> X </ui-button>
             {{else}}
