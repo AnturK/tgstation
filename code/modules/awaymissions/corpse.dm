@@ -88,12 +88,12 @@
 		M.ckey = ckey
 		if(show_flavour)
 			to_chat(M, "[flavour_text]")
+		if(assignedrole)
+			M.mind.assigned_role = assignedrole
 		var/datum/mind/MM = M.mind
 		if(objectives)
 			for(var/objective in objectives)
-				MM.objectives += new/datum/objective(objective)
-		if(assignedrole)
-			M.mind.assigned_role = assignedrole
+				MM.add_custom_objective(new/datum/objective(objective))
 		special(M, name)
 		MM.name = M.real_name
 	if(uses > 0)

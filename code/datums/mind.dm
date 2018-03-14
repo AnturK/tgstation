@@ -811,3 +811,22 @@
 	..()
 	mind.assigned_role = ROLE_PAI
 	mind.special_role = ""
+
+// Will create custom antagonist as needed, if mind already has antagonist with given name it will be added to it
+// If name is not provided, assigned role will be used ?
+// Will not show the objective to the player.
+/datum/mind/proc/add_custom_objective(datum/objective/new_objective,antag_name)
+	if(!antag_name)
+		antag_name = assigned_role ? assigned_role : "Antagonist"
+	var/datum/antagonist/custom/A
+
+	for(var/datum/antagonist/custom/C in antag_datums)
+		if(C.name == antag_name)
+			A = C
+			break
+	if(!A)
+		A = new
+		A.name = antag_name
+		add_antag_datum(A)
+	
+	A.objectives += new_objective

@@ -250,7 +250,8 @@ GLOBAL_LIST_EMPTY(antagonists)
 		return
 	..()
 
-/datum/antagonist/print_memory()
+//Antagonist section shown in memory.
+/datum/antagonist/proc/print_memory()
 	var/list/parts = list()
 	parts += A.antag_memory
 	if(objectives.len)
@@ -268,6 +269,8 @@ GLOBAL_LIST_EMPTY(antagonists)
 		parts += output.Join()
 	return parts.Join("<br>")
 
+
+//Roundend report helper.
 /datum/antagonist/proc/printobjectives()
 	var/list/objective_parts = list()
 	var/count = 1
