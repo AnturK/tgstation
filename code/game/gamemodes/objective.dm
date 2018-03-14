@@ -7,6 +7,7 @@
 	var/target_amount = 0				//If they are focused on a particular number. Steal objectives have their own counter.
 	var/completed = 0					//currently only used for custom objectives.
 	var/martyr_compatible = 0			//If the objective is compatible with martyr objective, i.e. if you can still do it while dead.
+	var/show_other_owners = TRUE		//If the objective is assigned to a team, memory section will show other owners.
 
 /datum/objective/New(var/text)
 	if(text)

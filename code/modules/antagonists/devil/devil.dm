@@ -549,7 +549,7 @@ GLOBAL_LIST_INIT(devil_suffix, list(" the Red", " the Soulless", " the Master", 
 	var/list/parts = list()
 	parts += printplayer(owner)
 	parts += printdevilinfo()
-	parts += printobjectives(owner)
+	parts += printobjectives()
 	return parts.Join("<br>")
 
 /datum/antagonist/devil/roundend_report_footer()

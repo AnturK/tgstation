@@ -134,14 +134,14 @@ GLOBAL_LIST_EMPTY(antagonists)
 	report += printplayer(owner)
 
 	var/objectives_complete = TRUE
-	if(owner.objectives.len)
-		report += printobjectives(owner)
+	if(objectives.len)
+		report += printobjectives()
 		for(var/datum/objective/objective in owner.objectives)
 			if(!objective.check_completion())
 				objectives_complete = FALSE
 				break
 
-	if(owner.objectives.len == 0 || objectives_complete)
+	if(objectives.len == 0 || objectives_complete)
 		report += "<span class='greentext big'>The [name] was successful!</span>"
 	else
 		report += "<span class='redtext big'>The [name] has failed!</span>"
@@ -249,3 +249,32 @@ GLOBAL_LIST_EMPTY(antagonists)
 	else
 		return
 	..()
+
+/datum/antagonist/print_memory()
+	var/list/parts = list()
+	parts += A.antag_memory
+	if(objectives.len)
+		var/list/output = "<B>[name] objectives:</B>"
+		var/obj_count = 1
+		for(var/datum/objective/objective in objectives)
+			output += "<br><B>Objective #[obj_count++]</B>: [objective.explanation_text]"
+			if(objective.show_other_owners)
+				var/list/datum/mind/other_owners = objective.get_owners() - src
+				if(other_owners.len)
+					output += "<ul>"
+					for(var/datum/mind/M in other_owners)
+						output += "<li>Conspirator: [M.name]</li>"
+					output += "</ul>"
+		parts += output.Join()
+	return parts.Join("<br>")
+
+/datum/antagonist/proc/printobjectives()
+	var/list/objective_parts = list()
+	var/count = 1
+	for(var/datum/objective/objective in objectives)
+		if(objective.check_completion())
+			objective_parts += "<b>Objective #[count]</b>: [objective.explanation_text] <span class='greentext'>Success!</span>"
+		else
+			objective_parts += "<b>Objective #[count]</b>: [objective.explanation_text] <span class='redtext'>Fail.</span>"
+		count++
+	return objective_parts.Join("<br>")

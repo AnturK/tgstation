@@ -43,8 +43,6 @@
 
 	var/datum/job/assigned_job
 
-	var/list/datum/objective/objectives = list()
-
 	var/list/spell_list = list() // Wizard mode & "Give Spell" badmin button.
 
 	var/datum/faction/faction 			//associated faction
@@ -366,25 +364,12 @@
 	var/output = "<B>[current.real_name]'s Memories:</B><br>"
 	output += memory
 
-
 	for(var/datum/antagonist/A in antag_datums)
-		output += A.antag_memory
-
-	if(objectives.len)
-		output += "<B>Objectives:</B>"
-		var/obj_count = 1
-		for(var/datum/objective/objective in objectives)
-			output += "<br><B>Objective #[obj_count++]</B>: [objective.explanation_text]"
-			var/list/datum/mind/other_owners = objective.get_owners() - src
-			if(other_owners.len)
-				output += "<ul>"
-				for(var/datum/mind/M in other_owners)
-					output += "<li>Conspirator: [M.name]</li>"
-				output += "</ul>"
+		output += A.print_memory()
 
 	if(window)
 		recipient << browse(output,"window=memory")
-	else if(objectives.len || memory)
+	else if(output)
 		to_chat(recipient, "<i>[output]</i>")
 
 /datum/mind/Topic(href, href_list)

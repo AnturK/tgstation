@@ -146,7 +146,7 @@
 	result += "<span class='header'>The abductors of [name] were:</span>"
 	for(var/datum/mind/abductor_mind in members)
 		result += printplayer(abductor_mind)
-		result += printobjectives(abductor_mind)
+		result += A.printobjectives()
 
 	return "<div class='panel redborder'>[result.Join("<br>")]</div>"
 
