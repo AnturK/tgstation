@@ -46,7 +46,6 @@
 	var/datum/objective/loot/getbooty = new()
 	getbooty.team = src
 	getbooty.storage_area = locate(/area/shuttle/pirate/vault) in GLOB.sortedAreas
-	getbooty.update_initial_value()
 	getbooty.update_explanation_text()
 	objectives += getbooty
 	for(var/datum/mind/M in members)
@@ -65,7 +64,6 @@ GLOBAL_LIST_INIT(pirate_loot_cache, typecacheof(list(
 	var/area/storage_area //Place where we we will look for the loot.
 	explanation_text = "Acquire valuable loot and store it in designated area."
 	var/target_value = 50000
-	var/initial_value = 0 //Things in the vault at spawn time do not count
 
 /datum/objective/loot/update_explanation_text()
 	if(storage_area)
@@ -101,9 +99,6 @@ GLOBAL_LIST_INIT(pirate_loot_cache, typecacheof(list(
 	for(var/turf/T in storage_area.contents)
 		value += export_item_and_contents(T,TRUE, TRUE, dry_run = TRUE)
 	return value - initial_value
-
-/datum/objective/loot/proc/update_initial_value()
-	initial_value = get_loot_value()
 
 /datum/objective/loot/check_completion()
 	return ..() || get_loot_value() >= target_value

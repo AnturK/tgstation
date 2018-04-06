@@ -242,27 +242,32 @@
 	var/cooldown = 0
 	var/result_count = 3 //Show X results.
 
-/obj/machinery/proc/display_current_value()
+/obj/machinery/loot_locator/proc/display_current_value()
 	var/area/current = get_area(src)
 	var/value = 0
 	for(var/turf/T in current.contents)
 		value += export_item_and_contents(T,TRUE, TRUE, dry_run = TRUE)
+		CHECK_TICK
 	say("Current vault value : [value] credits.")
+
 
 /obj/machinery/loot_locator/interact(mob/user)
 	if(world.time <= cooldown)
 		to_chat(user,"<span class='warning'>[src] is recharging.</span>")
 		return
 	cooldown = world.time + LOOT_LOCATOR_COOLDOWN
+
 	display_current_value()
 	var/list/results = list()
-	for(var/atom/movable/AM in world)
-		if(is_type_in_typecache(AM,GLOB.pirate_loot_cache))
-			if(is_station_level(AM.z))
-				if(get_area(AM) == get_area(src)) //Should this be variable ?
-					continue
+
+	for(var/area/A in sortedAreas)
+		if(!GLOB.station_areas[A.type])
+			continue
+		for(var/atom/movable/AM in A.contents)
+			if(GLOB.pirate_loot_cache[AM.type])
 				results += AM
 		CHECK_TICK
+
 	if(!results.len)
 		say("No valuables located. Try again later.")
 	else
