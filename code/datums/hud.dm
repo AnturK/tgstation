@@ -103,12 +103,24 @@ GLOBAL_LIST_INIT(huds, list(
 		add_to_single_hud(M, A)
 	return TRUE
 
+#define HIDDEN_HUD 1
+/mob
+	var/list/hidden_atoms = list()
+
+
+/mob/proc/hide_hud_from(mob/AI)
+	AI.hidden_atoms[src] = HIDDEN_HUD
+	AI.reload_huds()
+
 /datum/atom_hud/proc/add_to_single_hud(mob/M, atom/A) //unsafe, no sanity apart from client
 	if(!M || !M.client || !A)
 		return
 	for(var/i in hud_icons)
 		if(A.hud_list[i])
-			M.client.images |= A.hud_list[i]
+			if(M.hidden_atoms[A] & HIDDEN_HUD)
+				M.client.images -= A.hud_list[i]
+			else
+				M.client.images |= A.hud_list[i]
 
 //MOB PROCS
 /mob/proc/reload_huds()
