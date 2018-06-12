@@ -1,0 +1,31 @@
+away_trait/dark
+away_trait/rad
+away_trait/cold
+away_trait/vacuum
+away_trait/hot
+away_trait/nograv
+away_trait/heavygrav
+
+//First to run defines rooms and enemy/loot hotspots.
+away_layout/bsp
+away_layout/cave
+away_layout/open
+
+//Second to run places turfs and fluff objects
+away_theme/lavaland
+away_theme/derelict
+away_theme/wizard
+
+//Fourth to run places loot
+away_loot/key_and_chest
+away_loot/piles_of_trash
+away_loot/boss
+
+//Third to run places enemies and obstacles
+away_danger/aliens
+away_danger/rogue
+away_danger/syndie
+away_danger/wizard
+away_danger/lava
+away_danger/turrets
+away_danger/morphs
