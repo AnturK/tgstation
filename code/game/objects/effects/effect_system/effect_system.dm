@@ -28,8 +28,11 @@ would spawn and follow the beaker, even if it is carried or thrown.
 	var/effect_type
 	var/total_effects = 0
 	var/autocleanup = FALSE //will delete itself after use
+	var/cleanup_timer
 
 /datum/effect_system/Destroy()
+	if(!isnull(cleanup_timer))
+		deltimer(cleanup_timer)
 	holder = null
 	location = null
 	return ..()
@@ -50,8 +53,17 @@ would spawn and follow the beaker, even if it is carried or thrown.
 /datum/effect_system/proc/start()
 	for(var/i in 1 to number)
 		if(total_effects > 20)
-			return
+			break
 		INVOKE_ASYNC(src, .proc/generate_effect)
+	
+	if(autocleanup)
+		cleanup_timer = addtimer(CALLBACK(src, .proc/check_finished), 20, TIMER_STOPPABLE)
+
+/datum/effect_system/proc/check_finished()
+	if(total_effects <= 0)
+		qdel(src)
+	else
+		cleanup_timer = addtimer(CALLBACK(src, .proc/check_finished), 20, TIMER_STOPPABLE)
 
 /datum/effect_system/proc/generate_effect()
 	if(holder)
@@ -67,9 +79,6 @@ would spawn and follow the beaker, even if it is carried or thrown.
 	for(var/j in 1 to steps_amt)
 		sleep(5)
 		step(E,direction)
-	addtimer(CALLBACK(src, .proc/decrement_total_effect), 20)
-
-/datum/effect_system/proc/decrement_total_effect()
+	//This really should just be backref on the effect.
+	sleep(20)
 	total_effects--
-	if(autocleanup && total_effects <= 0)
-		qdel(src)
