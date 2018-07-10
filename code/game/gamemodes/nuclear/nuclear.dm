@@ -69,12 +69,14 @@
 		return replacementmode.check_finished()
 	if((SSshuttle.emergency.mode == SHUTTLE_ENDGAME) || station_was_nuked)
 		return TRUE
+	//If they managed to set the bomb then die do not end it.
 	if(nuke_team.operatives_dead())
 		var/obj/machinery/nuclearbomb/N
 		pass(N)	//suppress unused warning
 		if(N.bomb_set) //snaaaaaaaaaake! It's not over yet!
 			return FALSE	//its a static var btw
-	..()
+	//Otherwise nothing special.
+	. = ..()
 
 /datum/game_mode/nuclear/set_round_result()
 	..()
