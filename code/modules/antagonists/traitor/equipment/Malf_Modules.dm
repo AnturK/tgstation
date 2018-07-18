@@ -83,7 +83,9 @@ GLOBAL_LIST_INIT(blacklisted_malf_machines, typecacheof(list(
 		QDEL_IN(src, 100) //let any active timers on us finish up
 
 /datum/action/innate/ai/ranged/Destroy()
-	QDEL_NULL(linked_ability)
+	if(linked_ability)
+		linked_ability.attached_action = null
+		QDEL_NULL(linked_ability)
 	return ..()
 
 /datum/action/innate/ai/ranged/Activate()
