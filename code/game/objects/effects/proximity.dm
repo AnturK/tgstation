@@ -64,7 +64,7 @@
 			if(old_checkers_len)
 				pc = checkers_local[old_checkers_len]
 				--checkers_local.len
-				QDEL_LIST(checkers_local)
+				checkers_local.Cut()
 			else
 				pc = new(loc_to_use, src)
 
