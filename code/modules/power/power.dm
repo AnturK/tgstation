@@ -12,6 +12,7 @@
 	anchored = TRUE
 	obj_flags = CAN_BE_HIT | ON_BLUEPRINTS
 	var/datum/powernet/powernet = null
+	var/allow_direct_terminal_connection = FALSE
 	use_power = NO_POWER_USE
 	idle_power_usage = 0
 	active_power_usage = 0
@@ -97,12 +98,21 @@
 	if(!T || !istype(T))
 		return 0
 
-	var/obj/structure/cable/C = T.get_cable_node() //check if we have a node cable on the machine turf, the first found is picked
-	if(!C || !C.powernet)
-		return 0
+	var/datum/powernet/target_powernet
 
-	C.powernet.add_machine(src)
-	return 1
+	var/obj/structure/cable/C = T.get_cable_node() //check if we have a node cable on the machine turf, the first found is picked
+	if(C)
+		target_powernet = C.powernet
+
+	if(!target_powernet && allow_direct_terminal_connection)
+		var/obj/machinery/power/terminal/term = locate() in T
+		if(term)
+			target_powernet = term.powernet
+
+	if(!target_powernet)
+		return FALSE
+	target_powernet.add_machine(src)
+	return TRUE
 
 // remove and disconnect the machine from its current powernet
 /obj/machinery/power/proc/disconnect_from_network()

@@ -8,6 +8,7 @@
 	density = TRUE
 	anchored = FALSE
 	use_power = NO_POWER_USE
+	allow_direct_terminal_connection = TRUE
 
 	var/active = 0
 	var/power_gen = 5000
@@ -171,7 +172,7 @@
 		if(istype(O, /obj/item/wrench))
 
 			if(!anchored && !isinspace())
-				connect_to_network()
+				connect_to_network(allow_terminals = TRUE)
 				to_chat(user, "<span class='notice'>You secure the generator to the floor.</span>")
 				anchored = TRUE
 			else if(anchored)
