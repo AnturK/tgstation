@@ -17,6 +17,32 @@
 	if(owner)
 		. += owner
 
+/datum/objective/proc/admin_edit(mob/admin)
+	return
+
+//Shared by few objective types
+/datum/objective/assassinate/proc/admin_simple_target_pick(mob/admin, human_only = TRUE)
+	var/list/possible_targets = list("Free objective")
+	var/def_value
+	for(var/datum/mind/possible_target in SSticker.minds)
+		if ((possible_target != src) && (!human_only || ishuman(possible_target.current)))
+			possible_targets += possible_target.current
+
+	
+	if(target && target.current)
+		def_value = target.current
+
+	var/mob/new_target = input(admin,"Select target:", "Objective target", def_value) as null|anything in possible_targets
+	if (!new_target)
+		return
+	
+	if (new_target == "Free objective")
+		target = null
+	else
+		target = new_target.mind
+
+	update_explanation_text()
+
 /datum/objective/proc/considered_escaped(datum/mind/M)
 	if(!considered_alive(M))
 		return FALSE
@@ -134,6 +160,9 @@
 	else
 		explanation_text = "Free Objective"
 
+/datum/objective/assassinate/admin_edit(mob/admin)
+	admin_simple_target_pick(admin)
+	
 /datum/objective/assassinate/internal
 	var/stolen = 0 		//Have we already eliminated this target?
 
@@ -184,6 +213,9 @@
 	else
 		explanation_text = "Free Objective"
 
+/datum/objective/maroon/admin_edit(mob/admin)
+	admin_simple_target_pick(admin)
+
 /datum/objective/debrain
 	var/target_role_type=0
 
@@ -215,6 +247,9 @@
 	else
 		explanation_text = "Free Objective"
 
+/datum/objective/debrain/admin_edit(mob/admin)
+	admin_simple_target_pick(admin)
+
 /datum/objective/protect//The opposite of killing a dude.
 	martyr_compatible = 1
 	var/target_role_type = 0
@@ -235,6 +270,9 @@
 		explanation_text = "Protect [target.name], the [!target_role_type ? target.assigned_role : target.special_role]."
 	else
 		explanation_text = "Free Objective"
+
+/datum/objective/protect/admin_edit(mob/admin)
+	admin_simple_target_pick(admin)
 
 /datum/objective/protect/nonhuman
 	human_check = FALSE
@@ -344,6 +382,9 @@
 			return TRUE
 	return FALSE
 
+/datum/objective/escape/escape_with_identity/admin_edit(mob/admin)
+	admin_simple_target_pick(admin)
+
 /datum/objective/survive
 	explanation_text = "Stay alive until the end."
 
@@ -421,18 +462,18 @@ GLOBAL_LIST_EMPTY(possible_items)
 		explanation_text = "Free objective"
 		return
 
-/datum/objective/steal/proc/select_target() //For admins setting objectives manually.
+/datum/objective/steal/proc/admin_edit(mob/admin) //For admins setting objectives manually.
 	var/list/possible_items_all = GLOB.possible_items+"custom"
-	var/new_target = input("Select target:", "Objective target", steal_target) as null|anything in possible_items_all
+	var/new_target = input(admin,"Select target:", "Objective target", steal_target) as null|anything in possible_items_all
 	if (!new_target)
 		return
 
 	if (new_target == "custom") //Can set custom items.
-		var/obj/item/custom_target = input("Select type:","Type") as null|anything in typesof(/obj/item)
+		var/obj/item/custom_target = input(admin,"Select type:","Type") as null|anything in typesof(/obj/item)
 		if (!custom_target)
 			return
 		var/custom_name = initial(custom_target.name)
-		custom_name = stripped_input("Enter target name:", "Objective target", custom_name)
+		custom_name = stripped_input(admin,"Enter target name:", "Objective target", custom_name)
 		if (!custom_name)
 			return
 		steal_target = custom_target
@@ -440,7 +481,6 @@ GLOBAL_LIST_EMPTY(possible_items)
 
 	else
 		set_target(new_target)
-	return steal_target
 
 /datum/objective/steal/check_completion()
 	var/list/datum/mind/owners = get_owners()
@@ -464,7 +504,6 @@ GLOBAL_LIST_EMPTY(possible_items)
 					return TRUE
 	return FALSE
 
-
 GLOBAL_LIST_EMPTY(possible_items_special)
 /datum/objective/steal/special //ninjas are so special they get their own subtype good for them
 
@@ -479,6 +518,9 @@ GLOBAL_LIST_EMPTY(possible_items_special)
 
 /datum/objective/steal/exchange
 	martyr_compatible = 0
+
+/datum/objective/steal/exchange/admin_edit(mob/admin)
+	return
 
 /datum/objective/steal/exchange/proc/set_faction(faction,otheragent)
 	target = otheragent
@@ -513,8 +555,12 @@ GLOBAL_LIST_EMPTY(possible_items_special)
 
 /datum/objective/download/proc/gen_amount_goal()
 	target_amount = rand(20,40)
-	explanation_text = "Download [target_amount] research node\s."
+	update_explanation_text()
 	return target_amount
+
+/datum/objective/download/update_explanation_text()
+	..()
+	explanation_text = "Download [target_amount] research node\s."
 
 /datum/objective/download/check_completion()
 	var/datum/techweb/checking = new
@@ -532,12 +578,22 @@ GLOBAL_LIST_EMPTY(possible_items_special)
 				TD.stored_research.copy_research_to(checking)
 	return checking.researched_nodes.len >= target_amount
 
+/datum/objective/download/admin_edit(mob/admin)
+	var/count = input(admin,"How many nodes ?","Nodes",target_amount) as num|null
+	if(count)
+		target_amount = count
+	update_explanation_text()
+
 /datum/objective/capture
 
 /datum/objective/capture/proc/gen_amount_goal()
-		target_amount = rand(5,10)
-		explanation_text = "Capture [target_amount] lifeform\s with an energy net. Live, rare specimens are worth more."
-		return target_amount
+	target_amount = rand(5,10)
+	update_explanation_text()
+	return target_amount
+
+/datum/objective/capture/update_explanation_text()
+	. = ..()
+	explanation_text = "Capture [target_amount] lifeform\s with an energy net. Live, rare specimens are worth more."
 
 /datum/objective/capture/check_completion()//Basically runs through all the mobs in the area to determine how much they are worth.
 	var/captured_amount = 0
@@ -567,6 +623,11 @@ GLOBAL_LIST_EMPTY(possible_items_special)
 		captured_amount+=2
 	return captured_amount >= target_amount
 
+/datum/objective/capture/admin_edit(mob/admin)
+	var/count = input(admin,"How many mobs to capture ?","capture",target_amount) as num|null
+	if(count)
+		target_amount = count
+	update_explanation_text()
 
 //Changeling Objectives
 
@@ -586,8 +647,18 @@ GLOBAL_LIST_EMPTY(possible_items_special)
 				n_p ++
 	target_amount = min(target_amount, n_p)
 
-	explanation_text = "Extract [target_amount] compatible genome\s."
+	update_explanation_text()
 	return target_amount
+
+/datum/objective/absorb/update_explanation_text()
+	. = ..()
+	explanation_text = "Extract [target_amount] compatible genome\s."
+
+/datum/objective/absorb/admin_edit(mob/admin)
+	var/count = input(admin,"How many people to absorb?","absorb",target_amount) as num|null
+	if(count)
+		target_amount = count
+	update_explanation_text()
 
 /datum/objective/absorb/check_completion()
 	var/list/datum/mind/owners = get_owners()
@@ -664,6 +735,9 @@ GLOBAL_LIST_EMPTY(possible_items_special)
 		explanation_text = "Destroy [target.name], the experimental AI."
 	else
 		explanation_text = "Free Objective"
+
+/datum/objective/destroy/admin_edit(mob/admin)
+	admin_simple_target_pick(admin, FALSE)
 
 /datum/objective/destroy/internal
 	var/stolen = FALSE 		//Have we already eliminated this target?
