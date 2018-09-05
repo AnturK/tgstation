@@ -423,11 +423,47 @@
 			old_objective = locate(href_list["obj_edit"]) in objectives
 
 		if(old_objective)
+			for(var/datum/antagonist/A in antag_datums)
+				if(objective in A.objectives)
+					target_antag = A
+					objective_pos = A.objectives.Find(objective)
+					break
+			objective_pos = objectives.Find(objective)
 			//set target antag
 		else
 			//pick the antag
+			if(href_list["target_antag"])
+				var/datum/antagonist/X = locate(href_list["target_antag"]) in antag_datums
+				if(X)
+					target_antag = X
+			if(!target_antag)
+				switch(antag_datums.len)
+					if(0)
+						target_antag = add_antag_datum(/datum/antagonist/custom)
+					if(1)
+						target_antag = antag_datums[1]
+					else
+						var/datum/antagonist/target = input("Which antagonist gets the objective:", "Antagonist", "(new custom antag)") as null|anything in antag_datums + "(new custom antag)"
+						if (QDELETED(target))
+							return
+						else if(target == "(new custom antag)")
+							target_antag = add_antag_datum(/datum/antagonist/custom)
+						else
+							target_antag = target
+
+		if(old_objective)
+			//Remove it
+
+		var/list/allowed_types = list(/datum/objective/assasinate)
+		//list("assassinate", "maroon", "debrain", "protect", "destroy", "prevent", "hijack", "escape", "survive", "martyr", "steal", "download", "nuclear", "capture", "absorb", "custom")
+		var/selected_type = input("Select objective type:", "Objective type", def_value) as null|anything in allowed_types
+		if (!selected_type)
+			return
+
+		new_objective = new selected_type
+		new_objective.owner = src
+		new_objective.admin_edit(usr)
 		//select objective type
-		//remove old
 		//create new
 		//edit new
 		//set owner
