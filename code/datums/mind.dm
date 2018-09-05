@@ -416,8 +416,25 @@
 
 		var/datum/antagonist/target_antag
 
+		var/datum/objective/old_objective
+		var/datum/objective/new_objective
+
+		if(href_list["obj_edit")
+			old_objective = locate(href_list["obj_edit"]) in objectives
+
+		if(old_objective)
+			//set target antag
+		else
+			//pick the antag
+		//select objective type
+		//remove old
+		//create new
+		//edit new
+		//set owner
+		//insert new
+
 		if (href_list["obj_edit"])
-			objective = locate(href_list["obj_edit"])
+			objective = locate(href_list["obj_edit"]) 
 			if (!objective)
 				return
 

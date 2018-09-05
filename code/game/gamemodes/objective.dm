@@ -21,11 +21,11 @@
 	return
 
 //Shared by few objective types
-/datum/objective/assassinate/proc/admin_simple_target_pick(mob/admin, human_only = TRUE)
+/datum/objective/assassinate/proc/admin_simple_target_pick(mob/admin)
 	var/list/possible_targets = list("Free objective")
 	var/def_value
 	for(var/datum/mind/possible_target in SSticker.minds)
-		if ((possible_target != src) && (!human_only || ishuman(possible_target.current)))
+		if ((possible_target != src) && ishuman(possible_target.current))
 			possible_targets += possible_target.current
 
 	
@@ -737,7 +737,13 @@ GLOBAL_LIST_EMPTY(possible_items_special)
 		explanation_text = "Free Objective"
 
 /datum/objective/destroy/admin_edit(mob/admin)
-	admin_simple_target_pick(admin, FALSE)
+	var/list/possible_targets = active_ais(1)
+	if(possible_targets.len)
+		var/mob/new_target = input(admin,"Select target:", "Objective target") as null|anything in possible_targets
+		target = new_target.mind
+	else
+		to_chat(admin, "No active AIs with minds")
+	update_explanation_text()
 
 /datum/objective/destroy/internal
 	var/stolen = FALSE 		//Have we already eliminated this target?
