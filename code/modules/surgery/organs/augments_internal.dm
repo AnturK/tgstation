@@ -142,6 +142,27 @@
 		to_chat(owner, "<span class='warning'>Your breathing tube suddenly closes!</span>")
 		owner.losebreath += 2
 
+/obj/item/organ/cyberimp/mouth/grogbreath
+	name = "GROG Implant"
+	desc = "It's not an acronym. This implant allows you to breathe fire as long as you have alcohol in your system."
+	var/volume_per_breath = 15
+
+/obj/item/organ/cyberimp/mouth/grogbreath/proc/firebreath()
+	if(!owner || !owner.reagents)
+		return
+	var/fuel_volume = 0
+	for(var/datum/reagent/R in owner.reagents.reagent_list)
+		if(istype(R,/datum/reagent/consumable/ethanol))
+			fuel_volume += R.volume
+
+	if(fuel_volume < volume_per_breath)
+		to_chat(owner,"Not enough")
+		return
+
+	owner.reagents.remove_all_type(/datum/reagent/consumable/ethanol,volume_per_breath,from_each = FALSE)
+	
+	var/mouth_covered = owner.is_mouth_covered()
+
 //BOX O' IMPLANTS
 
 /obj/item/storage/box/cyber_implants

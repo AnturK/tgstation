@@ -673,7 +673,12 @@
 
 	return jointext(names, ",")
 
-/datum/reagents/proc/remove_all_type(reagent_type, amount, strict = 0, safety = 1) // Removes all reagent of X type. @strict set to 1 determines whether the childs of the type are included.
+// Removes all reagent of X type. 
+//@amount
+//@strict set to 1 determines whether the childs of the type are included.
+//@safety
+//@from_each - if set the given volume is removed of each reagent of the type, otherwise reagents are removed one by one until given volume is removed
+/datum/reagents/proc/remove_all_type(reagent_type, amount, strict = 0, safety = 1 , from_each = TRUE) 
 	if(!isnum(amount))
 		return 1
 	var/list/cached_reagents = reagent_list
@@ -692,8 +697,12 @@
 		// We found a match, proceed to remove the reagent.	Keep looping, we might find other reagents of the same type.
 		if(matches)
 			// Have our other proc handle removement
+			var/removed_amount = min(R.volume,amount)
 			has_removed_reagent = remove_reagent(R.id, amount, safety)
-
+			if(!from_each)
+				amount -= removed_amount
+				if(amount <= 0)
+					break
 	return has_removed_reagent
 
 //two helper functions to preserve data across reactions (needed for xenoarch)
