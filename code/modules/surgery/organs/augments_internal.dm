@@ -158,10 +158,14 @@
 	if(fuel_volume < volume_per_breath)
 		to_chat(owner,"Not enough")
 		return
-
 	owner.reagents.remove_all_type(/datum/reagent/consumable/ethanol,volume_per_breath,from_each = FALSE)
-	
-	var/mouth_covered = owner.is_mouth_covered()
+	if(owner.is_mouth_covered())
+		//to_chat(owner,"Dum")
+		return
+
+	for(var/turf/open/T in cone(A,A.dir,3))
+		T.hotspot_expose()
+
 
 //BOX O' IMPLANTS
 
