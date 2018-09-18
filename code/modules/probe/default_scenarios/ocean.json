@@ -1,0 +1,45 @@
+{
+    "name":"DEBUG OCEAN",
+    "scantags":["water"],
+    "nodes": [
+        {
+            "id": "START",
+            "desc": "None",
+            "visual": "None",
+            "on_enter": [
+                {
+                    "id": "DAMAGE",
+                    "value": 1
+                }
+            ],
+            "choices": [
+                {
+                    "id": "Dive",
+                    "sucess_id": "Bottom",
+                    "failure_id": "DESTROYED",
+                    "required_all": [
+                        "waterproof"
+                    ],
+                    "required_any": [],
+                    "required_none": []
+                },
+                {
+                    "id": "Sink",
+                    "sucess_id": "DESTROYED",
+                    "required_none": [
+                        "waterproof"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "Bottom",
+            "desc": "Bottom",
+            "on_enter": [
+                {
+                    "id": "WIN"
+                }
+            ]
+        }
+    ]
+}
