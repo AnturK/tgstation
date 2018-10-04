@@ -1,0 +1,33 @@
+<script>
+  import { UI_INTERACTIVE } from 'util/constants'
+  import { act } from 'util/byond'
+
+  component.exports = {
+    computed: {
+      enabled () {
+        if (this.get('config.status') === UI_INTERACTIVE) {
+          return true
+        }
+        return false
+      }
+		},
+    oninit () {
+      this.on('selected', (event) => {
+        let modded_params = this.get('params')
+        if(typeof modded_params === 'undefined')
+        {
+            modded_params = {}
+        }
+        modded_params.selected_value = event.target.value
+        act(this.get('config.ref'), this.get('action'), modded_params)
+        event.node.blur()
+      })
+    }
+  }
+</script>
+
+<select class='select' 
+    {{#!enabled}}disabled = true{{/}}
+    on-change='{{#enabled}}selected{{/}}'>
+  {{yield}}
+</select>

@@ -32,4 +32,12 @@
 	<ui-section label='Current Buffer'>{{text_buffer}}
 	</ui-section>
 	<ui-section><ui-button action='enter_text'>New Text</ui-button></ui-section>
+
+	<ui-section>
+	<ui-select action='chosen_stencil'>
+		<option value='A'>A</option>
+		<option value='B'>B</option>
+		<option value='C'>C</option>
+	</ui-select>
+	</ui-section>
 </ui-display>
