@@ -575,3 +575,79 @@
 	addtimer(CALLBACK(C, /mob/living/carbon.proc/gain_trauma, /datum/brain_trauma/hypnosis, TRAUMA_RESILIENCE_SURGERY, raw_message), 10)
 	addtimer(CALLBACK(C, /mob/living.proc/Stun, 60, TRUE, TRUE), 15) //Take some time to think about it
 	qdel(src)
+
+/obj/effect/karma_el
+	invisibility = INVISIBILITY_OBSERVER
+	var/datum/status_effect/karmic_curse/parent
+	var/val
+
+/obj/effect/karma_el/attack_ghost(mob/user)
+	. = ..()
+	parent.vote(user,val)
+
+/obj/effect/karma_el/plus
+	pixel_w = -10
+	pixel_z = 10
+	val = 1
+
+/obj/effect/karma_el/minus
+	pixel_w = -10
+	pixel_z = 10
+	val = -1
+
+/datum/status_effect/karmic_curse
+	id = "karma"
+	status_type = STATUS_EFFECT_UNIQUE
+	duration = 9000
+	tick_interval = 20
+	var/balance = 0
+	var/votes = list()
+	var/list/obj/effect/karma_el/elements()
+
+/datum/status_effect/karmic_curse/proc/vote(mob/user,value)
+	if(!user.ckey)
+		return
+	var/oldval = votes[user.ckey]
+	if(oldval == value)
+		return
+	votes[user.ckey] = value
+	if(oldval)
+		balance -= oldval
+	balance += value
+	to_chat(user,"<span class='notice'>You judge [owner]</span>"
+
+/datum/status_effect/karmic_curse/tick()
+	switch(balance)
+		if(-INFINITY to - 8)
+			//realbad
+			pass
+		if(-8 to -1)
+			//bad
+			pass
+		if(0)
+			pass
+		if(1 to 8)
+			//good
+			pass
+		if(8 to INFINITY)
+			//realgood
+			pass
+
+/datum/status_effect/karmic_curse/on_apply()
+	if(!iscarbon(owner))
+		return FALSE
+	create_vote_objects()
+	return TRUE
+
+/datum/status_effect/karmic_curse/proc/create_vote_objects()
+	var/obj/effect/karma_el/plus/plus = new
+	plus.parent = src
+	var/obj/effect/karma_el/minus/minus = new
+	minus.parent = src
+	owner.vis_contents += plus
+	owner.vis_contents += minus
+
+/datum/status_effect/karmic_curse/on_creation(mob/living/new_owner, _duration)
+	duration = _duration
+	. = ..()
+
