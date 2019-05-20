@@ -391,18 +391,21 @@
 							matching_container = 1
 					if (isliving(cached_my_atom) && !C.mob_react) //Makes it so certain chemical reactions don't occur in mobs
 						return
-					if(!C.required_other)
-						matching_other = 1
 
-					else if(istype(cached_my_atom, /obj/item/slime_extract))
-						var/obj/item/slime_extract/M = cached_my_atom
-
-						if(M.Uses > 0) // added a limit to slime cores -- Muskets requested this
-							matching_other = 1
+					if(C.special_requirements)
+						if(C.special_requirements & REACTION_SLIME)
+							if(istype(cached_my_atom, /obj/item/slime_extract))
+								var/obj/item/slime_extract/M = cached_my_atom
+								if(M.Uses > 0) // added a limit to slime cores -- Muskets requested this
+									matching_other |= REACTION_SLIME
+						if(C.special_requirements & REACTION_DISTILL)
+							if(cached_my_atom)
+								matching_other |= REACTION_SLIME
+						matching_other = matching_other == C.special_requirements
 				else
 					if(!C.required_container)
 						matching_container = 1
-					if(!C.required_other)
+					if(!C.special_requirements) //If you're adding requirements that do not depend on the reagent holder atom update this
 						matching_other = 1
 
 				if(required_temp == 0 || (is_cold_recipe && chem_temp <= required_temp) || (!is_cold_recipe && chem_temp >= required_temp))

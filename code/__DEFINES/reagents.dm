@@ -29,3 +29,6 @@
 #define REM_REAGENT		3	// reagent removed (may still exist)
 
 #define MIMEDRINK_SILENCE_DURATION 30  //ends up being 60 seconds given 1 tick every 2 seconds
+
+#define REACTION_SLIME 1 //Only happens in slimes with uses left
+#define REACTION_DISTILL 2 //Only happens in active distillers

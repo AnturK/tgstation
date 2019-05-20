@@ -1,3 +1,7 @@
+#define COLLECT_REFLUX "reflux"
+#define COLLECT_DISTILL "distill"
+
+
 /obj/machinery/chem_heater
 	name = "chemical heater"
 	density = TRUE
@@ -8,9 +12,11 @@
 	resistance_flags = FIRE_PROOF | ACID_PROOF
 	circuit = /obj/item/circuitboard/machine/chem_heater
 	var/obj/item/reagent_containers/beaker = null
+	var/obj/item/reagent_containers/distill_beaker = null //distillation residue ends up in this one
 	var/target_temperature = 300
 	var/heater_coefficient = 0.1
 	var/on = FALSE
+	var/collect_mode = COLLECT_REFLUX
 
 /obj/machinery/chem_heater/Destroy()
 	QDEL_NULL(beaker)

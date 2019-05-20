@@ -4,10 +4,8 @@
 	var/list/results = new/list()
 	var/list/required_reagents = new/list()
 	var/list/required_catalysts = new/list()
-
-	// Both of these variables are mostly going to be used with slime cores - but if you want to, you can use them for other things
+	var/special_requirements = NONE //Special reaction requirements, see reagent defines file for details
 	var/required_container = null // the exact container path required for the reaction to happen
-	var/required_other = 0 // an integer required for the reaction to happen
 
 	var/mob_react = TRUE //Determines if a chemical reaction can occur inside a mob
 
