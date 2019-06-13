@@ -121,7 +121,7 @@
 	if(!pushed_mob.pass_flags & PASSTABLE)
 		added_passtable = TRUE
 		pushed_mob.pass_flags |= PASSTABLE
-	pushed_mob.Move(src.loc)
+	pushed_mob.Move(loc)
 	if(added_passtable)
 		pushed_mob.pass_flags &= ~PASSTABLE
 	if(pushed_mob.loc != loc) //Something prevented the tabling
