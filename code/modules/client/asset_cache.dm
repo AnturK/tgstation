@@ -710,3 +710,34 @@ GLOBAL_LIST_EMPTY(asset_datums)
 		"dna_undiscovered.png"	= 'html/dna_undiscovered.png',
 		"dna_extra.png" 		= 'html/dna_extra.png'
 )
+
+
+/datum/asset/spritesheet/tcg
+	name = "tcg"
+
+/proc/generate_tcg_asset_id(icon,icon_state)
+	return replacetext(replacetext("[icon]-[icon_state]", "/", "_"),".","_")
+
+/datum/asset/spritesheet/tcg/register()
+	Insert("default_actor",'icons/misc/tcg.dmi',"default_actor")
+	Insert("default_card",'icons/misc/tcg.dmi',"default_card")
+	for(var/x in typesof(/datum/tcg))
+		var/datum/tcg/C = x
+
+		var/icon_file = initial(C.icon)
+		var/icon_state = initial(C.icon_state)
+		if(!icon_file || !icon_state)
+			continue
+		var/imgid = generate_tcg_asset_id(icon_file,icon_state)
+		Insert(imgid, icon_file , icon_state = icon_state)
+	
+	for(var/x in typesof(/datum/tcg_actor))
+		var/datum/tcg_actor/C = x
+
+		var/icon_file = initial(C.icon)
+		var/icon_state = initial(C.icon_state)
+		if(!icon_file || !icon_state)
+			continue
+		var/imgid = generate_tcg_asset_id(icon_file,icon_state)
+		Insert(imgid, icon_file , icon_state = icon_state)
+	return ..()

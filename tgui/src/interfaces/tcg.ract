@@ -1,0 +1,101 @@
+<script>
+  component.exports = {
+    computed: {
+        pov_actor(){
+            const actors = this.get('data.actors')
+            const pov_index = this.get('data.pov_index')
+            return actors[pov_index]
+        },
+        current_actor() {
+            const actors = this.get('data.actors')
+            return actors.filter(actor => actor.current == 1).shift()
+        },
+        friends () {
+            const actors = this.get('data.actors')
+            return actors.filter(actor => actor.team == 0)
+        },
+        enemies () {
+          const actors = this.get('data.actors')
+          return actors.filter(actor => actor.team == 1)
+        }
+    }
+  }
+</script>
+
+{{#if data.complete}}
+<h1>YOU {{ data.win ? "WIN" : "LOSE" }}!</h1>
+{{else}}
+<h1>Turn {{data.turn}}</h1>
+<ui-display title='Friends'>
+<div class="actorgroup">
+    {{#each friends}}
+        <div class="actor">
+            <div class="name">{{name}}</div>
+            <div class="pic"><span class="tcg32x32 {{icon}}"></span></div>
+            <div class="stats">
+                <div class="health"><span class="fas fa-heart fa-2x">{{health}}</span></div>
+                <div class="defense"><span class="fas fa-shield-alt fa-2x">{{defense}}</span></div>
+                <div class="ap"><span class="fas fa-bolt fa-2x">{{ap}}</span></div>
+            </div>
+            <div class="properties">
+                {{#each properties}}
+                    <span data-tooltip='{{name}} : {{desc}}'><i class='{{icon}} fa-2x'></i>{{value}}</span>
+                {{/each}}
+            </div>
+        </div>
+    {{/each}}
+</div>
+</ui-display>
+<ui-display title='Enemies'>
+<div class="actorgroup">
+    {{#each enemies}}
+        <div class="actor">
+            <div class="name">{{name}}</div>
+            {{#if cue}}
+                <div class="cue"><i class='{{cue}} fa-2x'></i></div>
+            {{/if}}
+            <div class="pic"><span class="tcg32x32 {{icon}}"></span></div>
+            <div class="stats">
+                <div class="health"><span class="fas fa-heart fa-2x">{{health}}</span></div>
+                <div class="defense"><span class="fas fa-shield-alt fa-2x">{{defense}}</span></div>
+                <div class="ap"><span class="fas fa-bolt fa-2x">{{ap}}</span></div>
+            </div>
+            <div class="properties">
+                {{#each properties}}
+                    <span data-tooltip='{{name}} : {{desc}}'><i class='{{icon}} fa-2x'></i>{{value}}</span>
+                {{/each}}
+            </div>
+        </div>
+    {{/each}}
+</div>
+</ui-display>
+<ui-display title='Hand'>
+<div class="hand">
+{{#each data.hand : ix}}
+    {{#if data.your_turn}}
+        <div class='card'>
+            <div class="name">{{name}}</div>
+            <div class="cost">{{cost}} <span class='fas fa-bolt'></span></div>
+            <div class="pic"><span class="tcg32x32 {{icon}}"></span></div>
+            <div class="desc">{{desc}}</div>
+            <div class="play"><ui-button action='play-card' params='{"card": {{ix+1}}}'>Play</ui-button></div>
+        </div>
+    {{else}}
+        <div>{{name}} - {{desc}} - {{cost}}</div>
+    {{/if}}
+{{/each}}
+</div>
+<div>
+{{#if data.your_turn}}
+    <ui-button icon='power-off' action='end-turn'>End Turn</ui-button>
+{{/if}}
+</div>
+</ui-display>
+<ui-display title='Log'>
+	<div class='log'>
+        {{#each data.log}}
+            <div class='entry'>{{.}}</div>
+        {{/each}}
+	</div>
+</ui-display>
+{{/if}}

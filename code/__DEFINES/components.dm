@@ -328,3 +328,20 @@
 #define COMSIG_XENO_TURF_CLICK_SHIFT "xeno_turf_click_shift"				//from turf ShiftClickOn(): (/mob)
 #define COMSIG_XENO_TURF_CLICK_CTRL "xeno_turf_click_alt"					//from turf AltClickOn(): (/mob)
 #define COMSIG_XENO_MONKEY_CLICK_CTRL "xeno_monkey_click_ctrl"				//from monkey CtrlClickOn(): (/mob)
+
+
+//TCG
+#define COMSIG_TCG_MODIFY_COST "tcg_mod_cost" //costreflist, actual_use
+#define COMSIG_TCG_CARD_USED "tcg_card_used" //user, card
+
+#define COMSIG_TCG_CARD_DRAWN "tcg_draw" //card, turnstart_draw
+#define COMSIG_TCG_TURN_START "tcg_turn_start"
+#define COMSIG_TCG_TURN_END "tcg_turn_end"
+#define COMSIG_TCG_ACTOR_JOINED "tcg_actor_join"
+
+#define COMSIG_TCG_DAMAGE_MOD "tcg_damage_mod" //target, valueref , context
+#define COMSIG_TCG_ATTACKED "tcg_attacked"
+#define COMSIG_TCG_HEALTH_CHANGED "tcg_health_changed"
+#define COMSIG_TCG_DEFENSE_CHANGED "tcg_defense_changed"
+#define COMSIG_TCG_DEATH "tcg_death"
+#define COMSIG_TCG_PROPERTY_CHANGED "tcg_prop_changed" //amount

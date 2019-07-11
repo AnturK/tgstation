@@ -1,0 +1,102 @@
+&.tcg
+    .actorgroup
+        display: table
+        border-collapse: separate
+        border-spacing: 10px
+        margin: 0 auto
+    .actor
+        border: 1px red solid
+        width: 150px
+        min-height: 150px
+        display: table-cell
+        .name
+            font-weight:bold
+            text-align:center
+        .cue
+            text-align:center
+        .pic
+            width: 64px
+            height: 64px
+            margin: 0 auto
+            border: 1px blue solid
+        .pic > span
+            transform: scale(2)
+            transform-origin: top left
+            -ms-interpolation-mode: nearest-neighbor
+        .stats
+            display: table
+            border-spacing: 10px
+            border-collapse: separate
+            margin: 0 auto
+        .health
+            color: red
+            display: table-cell
+        .defense
+            color: blue
+            display: table-cell
+        .ap
+            color: green
+            display: table-cell
+    .hand
+        display: table
+        border-collapse: separate
+        border-spacing: 10px
+        margin: 0 auto
+        background: #aaa
+
+    .card
+        border-radius: 10px
+        width: 150px
+        height: 200px
+        display: table-cell
+        background: #082338
+        box-shadow: 3px 7px 7px 3px rgba(0, 0, 0, 0.3)
+        border: 3px #121a24 solid
+        .pic
+            width: 64px
+            height: 64px
+            margin: 0 auto
+            border: 4px #121a24 solid
+            border-radius: 5px
+        .pic > span
+            transform: scale(2)
+            transform-origin: top left
+            -ms-interpolation-mode: nearest-neighbor
+        .name
+            font-weight: bold
+            color: #fafafa
+            text-align: center
+            text-shadow: 1px 1px 0px #40628a /* FF3.5+, Opera 9+, Saf1+, Chrome, IE10 */
+            border: 3px #2c3f54 solid
+            border-radius: 5px
+            background: #1e2c3b
+            font-size: 18px
+            min-height: 50px
+            vertical-align: middle
+
+        .cost
+            color: red
+            font-weight: bold
+            text-shadow: 1px 1px 0px #40628a /* FF3.5+, Opera 9+, Saf1+, Chrome, IE10 */
+
+        .desc
+            color: #fafafa
+            text-align: center
+            text-shadow: 1px 1px 1px #40628a /* FF3.5+, Opera 9+, Saf1+, Chrome, IE10 */
+            border: 3px #2c3f54 solid
+            border-radius: 10px
+            background: #1e2c3b
+            font-family: "Arial", sans-serif
+            font-size: 15px
+            min-height: 50px
+            vertical-align: middle
+        .play
+            text-align: center
+            text-shadow: 2px 2px 1px #40628a /* FF3.5+, Opera 9+, Saf1+, Chrome, IE10 */
+        &:hover
+            transform: scale(1.1)
+    .log
+        height: 50px;
+        overflow: auto;
+        .entry
+            font-family: sans-serif;
