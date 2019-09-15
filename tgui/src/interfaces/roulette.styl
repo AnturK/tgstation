@@ -1,53 +1,80 @@
-&.roulette	
+&.roulette
+		.sideboard
+			.betboard
+				width: 100%
+			.balanceboard
+				text-align: center
 
-	.number_red
-		color white
-		width 32px
-		height 32px
-		font-size 16px
-		margin 4px
-		background-color #aa1818
-		border none
-		button-color-normal       = #AA1818
-		button-color-selected     = #CFBA47
-		
-	.number_black
-		color white
-		width 32px
-		height 32px
-		font-size 16px
-		margin 4px
-		button-color-normal       = #1A1A1A
-		border none
-		
-	.image_button
-		color none
-		width 32px
-		height 72px
-		font-size 16px
+		.board
+			padding 4px
+			margin 8px
+			width 250px
+			border-style ridge
+			color white
+			background-color #097a2d
+			border-color #06541f
+			
+			.betbuttons
+				display: inline-block
+			
+			.large_buttons
+				width: 32px
+				height: 100%
+				margin-top 40px
+				display: inline-block
 
-		margin 4px
-		border none
-		button-color-normal = none
+			.rbbuttons
+				width 32px
+				height: 100%
+				margin-top 60px
+				display: inline-block
 
-	.amount
-		width 90%
-		height 32px
-		margin-top 8px
-		border-style ridge
-		color white
-		button-color-normal = #146630
-		border-color #06541f
+		.number_red
+			.button
+				width 32px
+				height 32px
+				font-size 16px
+				margin 4px
+				border none
+				color white
+			button-color-normal = #AA1818
+			button-color-selected = #CFBA47
+			@import "util/*"
+			@import "components/*"
+			
+		.number_black
+			.button
+				width 32px
+				height 32px
+				font-size 16px
+				margin 4px
+				border none
+				color white
+			button-color-normal	= #1A1A1A
+			@import "util/*"
+			@import "components/*"
+			
+		.image_button
+			.button
+				width 32px
+				font-size 16px
+				margin 4px
+				border none
+				color none
+				height 72px
+			@import "util/*"
+			@import "components/*"
 
-	.display
-		padding 4px
-		margin 8px
-		width 200px
-		border-style ridge
-		color white
-		background-color #097a2d
-		border-color #06541f
-	
-    @import "util/*"
-    @import "components/*"
-
+		.amount
+			.button
+				height 32px
+				font-size 16px
+				margin 4px
+				color white
+				width 90%
+				margin-top 8px
+				border-style ridge
+				border-color #06541f
+			button-color-normal = #146630
+			@import "util/*"
+			@import "components/*"
