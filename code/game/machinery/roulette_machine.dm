@@ -47,7 +47,6 @@
 	if(!ui)
 		var/datum/asset/spritesheet/simple/assets = get_asset_datum(/datum/asset/spritesheet/simple/roulette)
 		assets.send(user)
-		
 		ui = new(user, src, ui_key, "roulette", name, 455, 520, master_ui, state)
 		ui.open()
 
@@ -272,7 +271,7 @@
 		add_overlay("jackpot")
 	else
 		add_overlay(color)
-		
+
 	var/numberright = rolled_number % 10 //Right hand number
 	var/numberleft = (rolled_number - numberright) / 10 //Left hand number
 
@@ -308,7 +307,7 @@
 	used = TRUE
 	addtimer(CALLBACK(src, .proc/launch_payload), 40)
 
-/obj/item/roulette_wheel_beacon/proc/launch_payload()	
+/obj/item/roulette_wheel_beacon/proc/launch_payload()
 	new /obj/effect/DPtarget(drop_location(), /obj/structure/closet/supplypod/centcompod, /obj/machinery/roulette)
 
 #undef ROULETTE_SINGLES_PAYOUT
