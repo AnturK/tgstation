@@ -1,9 +1,24 @@
 &.roulette
+		
+		//Board on the left, bet buttons on the right
+		.container
+			display: inline-block
+		.container > .sideboard
+			float right
+		.container > .board
+			float left
+
+		//Sideboard styling
 		.sideboard
+			width: auto
 			.betboard
-				width: 100%
+				width: auto
 			.balanceboard
 				text-align: center
+
+		//Board has three columns
+		.board > div
+			display: inline-block
 
 		.board
 			padding 4px
@@ -14,56 +29,54 @@
 			background-color #097a2d
 			border-color #06541f
 			
-			.betbuttons
-				display: inline-block
-			
+			//Range buttons
 			.large_buttons
 				width: 32px
-				height: 100%
-				margin-top 40px
-				display: inline-block
+				max-width 32px
+				margin-top 20px
+				margin: 0px
 
+			.large_buttons > span
+				float: left
+
+			//Blackred buttons
 			.rbbuttons
 				width 32px
-				height: 100%
-				margin-top 60px
-				display: inline-block
+				max-width 32px
+				margin-top 40px
+				margin 0px
+			
+			.rbbuttons > span
+				float: left
 
-		.number_red
-			.button
-				width 32px
-				height 32px
-				font-size 16px
-				margin 4px
-				border none
-				color white
+
+		.number .button
+			width 32px
+			height 32px
+			font-size 16px
+			margin 4px
+			border none
+			color white
+		
+		.number.red
 			button-color-normal = #AA1818
 			button-color-selected = #CFBA47
 			@import "util/*"
 			@import "components/*"
-			
-		.number_black
-			.button
-				width 32px
-				height 32px
-				font-size 16px
-				margin 4px
-				border none
-				color white
+
+		.number.black
 			button-color-normal	= #1A1A1A
 			@import "util/*"
 			@import "components/*"
 			
-		.image_button
-			.button
+		.image_button .button
 				width 32px
 				font-size 16px
 				margin 4px
+				padding 0px
 				border none
 				color none
 				height 72px
-			@import "util/*"
-			@import "components/*"
 
 		.amount
 			.button
