@@ -63,6 +63,8 @@
 /obj/item/chameleon/proc/check_sprite(atom/target)
 	if(target.icon_state in icon_states(target.icon))
 		return TRUE
+	if(atom.alpha != 255 || atom.invisibility != 0)
+		return FALSE
 	return FALSE
 
 /obj/item/chameleon/proc/toggle(mob/user)
