@@ -350,6 +350,9 @@
 		stun_absorption[key]["end_time"] = world.time + duration
 		stun_absorption[key]["priority"] = priority
 		stun_absorption[key]["stuns_absorbed"] = 0
+		stun_absorption[key]["visible_message"] = message
+		stun_absorption[key]["self_message"] = self_message
+		stun_absorption[key]["examine_message"] = examine_message
 	else
 		stun_absorption[key] = list("end_time" = world.time + duration, "priority" = priority, "stuns_absorbed" = 0, \
 		"visible_message" = message, "self_message" = self_message, "examine_message" = examine_message)
