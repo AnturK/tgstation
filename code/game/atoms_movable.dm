@@ -749,6 +749,8 @@
 /atom/movable/proc/ex_check(ex_id)
 	if(!ex_id)
 		return TRUE
+	if(QDELETED(src))
+		return FALSE
 	LAZYINITLIST(acted_explosions)
 	if(ex_id in acted_explosions)
 		return FALSE
