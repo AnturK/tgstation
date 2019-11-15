@@ -17,11 +17,12 @@ Refactor:
 # Manually added, pattern doesn't matter
 Test Merge Candidate:
   type: alwaysRemove
-  patterns: ""
+  patterns: "todo make this optional here"
 
 Merge Conflict:
   type: mergeState
   removable: true
+  patterns: "todo make this optional here"
 
 Map Edit:
   type: filesChanged
