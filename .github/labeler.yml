@@ -1,11 +1,3 @@
-js:
-  type: filesChanged
-  patterns: "**/*.js"
-
-refactor:
-  type: title
-  patterns: "*refactor*"
-
 Do Not Merge:
   type: title
   patterns: "\\[dnm\\]*"
@@ -17,3 +9,53 @@ Work In Progress:
 Needs Review:
   type: title
   patterns: "\\[ready\\]*"
+
+Refactor:
+  type: title
+  patterns: "*refactor*"
+
+# Manually added
+Test Merge Candidate:
+  type: alwaysRemove
+
+Merge Conflict:
+  type: mergeState
+  removable: true
+
+Map Edit:
+  type: filesChanged
+  removable: true
+  patterns: "_maps/**/*"
+
+Tools:
+  type: filesChanged
+  removable: true
+  patterns: "tools/**/*"
+
+SQL:
+  type: filesChanged
+  removable: true
+  patterns: "SQL/**/*"
+
+GitHub:
+  type: filesChanged
+  removable: true
+  patterns: "\\.github/**/*"
+
+#addonly section
+
+Sprites:
+  type: filesChanged
+  patterns: "icons/**/"
+
+Sound:
+  type: filesChanged
+  patterns: "sound/**/"
+
+Config Update:
+  type: filesChanged
+  patterns: ["config/**/","code/controllers/configuration/entries/**/*"]
+
+UI:
+  type: filesChanged
+  patterns: "tgui/**/*"
