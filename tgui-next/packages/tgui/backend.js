@@ -1,6 +1,8 @@
 import { UI_DISABLED, UI_INTERACTIVE } from './constants';
 import { tridentVersion } from './byond';
 
+//MEMES
+
 /**
  * This file provides a clear separation layer between backend updates
  * and what state our React app sees.
