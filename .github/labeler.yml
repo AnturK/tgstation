@@ -14,9 +14,10 @@ Refactor:
   type: title
   patterns: "*refactor*"
 
-# Manually added
+# Manually added, pattern doesn't matter
 Test Merge Candidate:
   type: alwaysRemove
+  patterns: ""
 
 Merge Conflict:
   type: mergeState
