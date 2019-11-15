@@ -8,12 +8,12 @@ refactor:
 
 Do Not Merge:
   type: title
-  patterns: "\[dnm\]*"
+  patterns: "\\[dnm\\]*"
 
 Work In Progress:
   type: title
-  patterns: "\[wip\]*"
+  patterns: "\\[wip\\]*"
 
 Needs Review:
   type: title
-  patterns: "\[ready\]*"
+  patterns: "\\[ready\\]*"
