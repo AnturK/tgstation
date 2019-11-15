@@ -5,3 +5,15 @@ js:
 refactor:
   type: title
   patterns: "*refactor*"
+
+Do Not Merge:
+  type: title
+  patterns: "[dnm]*"
+
+Work In Progress:
+  type: title
+  patterns: "[wip]*"
+
+Needs Review:
+  type: title
+  patterns: "[ready]*"
