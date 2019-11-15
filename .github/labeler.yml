@@ -1,6 +1,6 @@
 js:
   type: filesChanged
-  patterns: "*.js"
+  patterns: "**/*.js"
 
 refactor:
   type: title
