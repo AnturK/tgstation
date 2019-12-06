@@ -163,7 +163,7 @@
 	return zPassOut(A, DOWN, target) && target.zPassIn(A, DOWN, src)
 
 /turf/proc/zFall(atom/movable/A, levels = 1, force = FALSE)
-	var/turf/target = get_step_multiz(src, DOWN)
+	var/turf/target = get_fall_target(A)
 	if(!target || (!isobj(A) && !ismob(A)))
 		return FALSE
 	if(!force && (!can_zFall(A, levels, target) || !A.can_zFall(src, levels, target, DOWN)))
@@ -173,6 +173,9 @@
 	A.zfalling = FALSE
 	target.zImpact(A, levels, src)
 	return TRUE
+
+/turf/proc/get_fall_target(atom/movable/A)
+	return SSmapping.get_turf_below(src)
 
 /turf/proc/handleRCL(obj/item/twohanded/rcl/C, mob/user)
 	if(C.loaded)

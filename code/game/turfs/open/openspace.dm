@@ -25,8 +25,7 @@
 	vis_contents.len = 0
 	return ..()
 
-/turf/open/openspace/update_multiz(prune_on_fail = FALSE, init = FALSE)
-	. = ..()
+/turf/open/openspace/proc/update_multiz(prune_on_fail = FALSE, init = FALSE)
 	var/turf/T = below()
 	if(!T)
 		vis_contents.len = 0
@@ -132,3 +131,23 @@
 			PlaceOnTop(/turf/open/floor/plating, flags = CHANGETURF_INHERIT_AIR)
 			return TRUE
 	return FALSE
+
+//You'll drop down somewhere else
+/turf/openspace/remote
+	var/target_x
+	var/target_y
+	var/target_z
+
+/turf/openspace/remote/update_multiz(prune_on_fail = FALSE, init = FALSE)
+	//Register COMSIG_TURF_CHANGE to del hooks ? What's the point of this really, changes to below turf don't really change the transition
+	var/turf/T = locate(target_x,target_y,target_z)
+	if(T)
+		if(init)
+			vis_contents += T
+	else
+		vis_contents.Cut()
+		if(prune_on_fail)
+			ChangeTurf(/turf/open/floor/plating, flags = CHANGETURF_INHERIT_AIR)
+
+/turf/openspace/remote/get_fall_target(atom/movable/A)
+	return locate(target_x,target_y,target_z)
