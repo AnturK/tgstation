@@ -137,6 +137,7 @@
 	var/target_x
 	var/target_y
 	var/target_z
+	CanAtmosPassVertical = ATMOS_PASS_NO
 
 /turf/openspace/remote/update_multiz(prune_on_fail = FALSE, init = FALSE)
 	//Register COMSIG_TURF_CHANGE to del hooks ? What's the point of this really, changes to below turf don't really change the transition
@@ -151,3 +152,9 @@
 
 /turf/openspace/remote/get_fall_target(atom/movable/A)
 	return locate(target_x,target_y,target_z)
+
+/turf/open/openspace/remote/zAirIn()
+	return FALSE
+
+/turf/open/openspace/remote/zAirOut()
+	return FALSE
