@@ -37,3 +37,18 @@ GLOBAL_DATUM_INIT(_preloader, /datum/map_preloader, new)
 	name = "Turf Passthrough"
 	icon_state = "noop"
 	bullet_bounce_sound = null
+
+
+GLOBAL_LIST(admin_abuse)
+
+/world/proc/apply_admin_abuse(atom/what)
+	for(var/preloader_data in GLOB.admin_abuse[what.type])
+		for(var/attribute in preloader_data.attributes)
+			var/value = preloader_data.attributes[attribute]
+			if(islist(value))
+				value = deepCopyList(value)
+			what.vars[attribute] = value
+
+/datum/admin_abuse_preloader
+	var/name = "Admin Preloader"
+	var/list/attributes = list()

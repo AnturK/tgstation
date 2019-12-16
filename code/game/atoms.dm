@@ -96,6 +96,10 @@
 	if(GLOB.use_preloader && (src.type == GLOB._preloader.target_path))//in case the instanciated atom is creating other atoms in New()
 		world.preloader_load(src)
 
+	if(GLOB.admin_abuse)
+		if(GLOB.admin_abuse[type])
+			apply_admin_abuse(src)
+
 	if(datum_flags & DF_USE_TAG)
 		GenerateTag()
 
@@ -879,6 +883,7 @@
 	VV_DROPDOWN_OPTION(VV_HK_ADD_REAGENT, "Add Reagent")
 	VV_DROPDOWN_OPTION(VV_HK_TRIGGER_EMP, "EMP Pulse")
 	VV_DROPDOWN_OPTION(VV_HK_TRIGGER_EXPLOSION, "Explosion")
+	VV_DROPDOWN_OPTION(VV_HK_CREATE_SPAWN_EDIT_DATUM, "Create Spawn VV Datum")
 
 /atom/vv_do_topic(list/href_list)
 	. = ..()
@@ -941,6 +946,13 @@
 		var/newname = input(usr, "What do you want to rename this to?", "Automatic Rename") as null|text
 		if(newname)
 			vv_auto_rename(newname)
+	if(href_list[VV_HK_CREATE_SPAWN_EDIT_DATUM] && check_rights(R_VAREDIT))
+		if(!GLOB.admin_abuse)
+			GLOB.admin_abuse = list()
+		var/datum/admin_abuse_preloader/D = new()
+		GLOB.admin_abuse[type] = D
+		log_admin("[key_name(usr)] has created preloader datum for [type]")
+		debug_variables(D)
 
 /atom/vv_get_header()
 	. = ..()

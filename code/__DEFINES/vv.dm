@@ -82,6 +82,7 @@
 #define VV_HK_TRIGGER_EMP "empulse"
 #define VV_HK_TRIGGER_EXPLOSION "explode"
 #define VV_HK_AUTO_RENAME "auto_rename"
+#define VV_HK_CREATE_SPAWN_EDIT_DATUM "spawn_abuse"
 
 // /obj
 #define VV_HK_OSAY "osay"
