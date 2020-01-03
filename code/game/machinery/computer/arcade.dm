@@ -130,7 +130,6 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 
 // ** BATTLE ** //
 
-
 /obj/machinery/computer/arcade/battle
 	name = "arcade machine"
 	desc = "Does not support Pinball."
@@ -142,10 +141,49 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 	var/player_mp = 10
 	var/enemy_hp = 45 //Enemy health/attack points
 	var/enemy_mp = 20
-	var/gameover = FALSE
+	var/gameover = TRUE
 	var/blocked = FALSE //Player cannot attack/heal while set
 	var/turtle = 0
 	var/list/weapons = list()
+
+	var/player_max_hp = 30
+	var/player_max_mp = 10
+	var/enemy_max_hp = 45
+	var/enemy_max_mp = 20
+
+/obj/machinery/computer/arcade/battle/ui_data(mob/user)
+	. = ..()
+	.["enemy_name"] = enemy_name
+	.["message"] = temp
+	.["player_hp"] = player_hp
+	.["player_mp"] = player_mp
+	.["enemy_hp"] = enemy_hp
+	.["enemy_mp"] = enemy_mp
+	.["enemy_icon"] = enemy_icon
+	.["gameover"] = gameover
+	.["paused"] = blocked
+
+/obj/machinery/computer/arcade/battle/ui_static_data(mob/user)
+	. = ..()
+	.["player_max_hp"] = player_max_hp
+	.["player_max_mp"] = player_max_mp
+	.["enemy_max_hp"] = enemy_max_hp
+	.["enemy_max_mp"] = enemy_max_mp
+
+
+/obj/machinery/computer/arcade/battle/proc/NewGame()
+	temp = "New Round"
+	player_hp = player_max_hp
+	player_mp = player_max_mp
+	enemy_hp = enemy_max_hp
+	enemy_mp = enemy_max_mp
+	gameover = FALSE
+	turtle = 0
+	
+	//One bomb run per emagging
+	if(obj_flags & EMAGGED)
+		Reset()
+		obj_flags &= ~EMAGGED
 
 /obj/machinery/computer/arcade/battle/Reset()
 	var/name_action
@@ -171,8 +209,81 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 	enemy_name = ("The " + name_part1 + " " + name_part2)
 	name = (name_action + " " + enemy_name)
 
-/obj/machinery/computer/arcade/battle/ui_interact(mob/user)
+/obj/machinery/computer/arcade/battle/ui_act(action, params)
 	. = ..()
+	if(blocked)
+		return FALSE
+	var/mob/user = usr
+	if(gameover)
+		if(action == "new_game")
+			NewGame()
+			. = TRUE
+	else
+		switch(action)
+			if("attack")
+				attack_action(user)
+				. = TRUE
+			if("heal")
+				heal_action(user)
+				. = TRUE
+			if("recharge")
+				recharge_action(user)
+				. = TRUE
+	
+	if(. && !QDELETED(user))
+		add_fingerprint(user)
+
+/obj/machinery/computer/arcade/battle/proc/attack_action(mob/user)
+	blocked = TRUE
+	var/attackamt = rand(2,6)
+	var/weapon = pick(weapons)
+	temp = "You attack with a [weapon] for [attackamt] damage!"
+	playsound(loc, 'sound/arcade/hit.ogg', 50, TRUE, extrarange = -3, falloff = 10)
+	if(turtle > 0)
+		turtle--
+	addtimer(CALLBACK(src,.proc/attack_result, user, attackamt),10)
+
+/obj/machinery/computer/arcade/battle/proc/attack_result(mob/user, attackamt)
+	enemy_hp -= attackamt
+	update_state(user)
+
+/obj/machinery/computer/arcade/battle/proc/heal_action(mob/user)
+	blocked = TRUE
+	var/pointamt = rand(1,3)
+	var/healamt = rand(6,8)
+	temp = "You use [pointamt] magic to heal for [healamt] damage!"
+	playsound(loc, 'sound/arcade/heal.ogg', 50, TRUE, extrarange = -3, falloff = 10)
+	turtle++
+	addtimer(CALLBACK(src,.proc/heal_result, user, pointamt, healamt),10)
+
+/obj/machinery/computer/arcade/battle/proc/heal_result(mob/user, pointamt, healamt)
+	player_mp -= pointamt
+	player_hp += healamt
+	update_state(user)
+
+/obj/machinery/computer/arcade/battle/proc/recharge_action(mob/user)
+	blocked = TRUE
+	var/chargeamt = rand(4,7)
+	temp = "You regain [chargeamt] points."
+	playsound(loc, 'sound/arcade/mana.ogg', 50, TRUE, extrarange = -3, falloff = 10)
+	if(turtle > 0)
+		turtle--
+	addtimer(CALLBACK(src,.proc/recharge_result, user, chargeamt),10)
+
+/obj/machinery/computer/arcade/battle/proc/recharge_result(mob/user, chargeamt)
+	player_mp += chargeamt
+	update_state(user)
+
+/obj/machinery/computer/arcade/battle/ui_interact(mob/user, ui_key = "main", datum/tgui/ui = null, force_open = FALSE, datum/tgui/master_ui = null, datum/ui_state/state = GLOB.default_state)
+	. = ..()
+
+	ui = SStgui.try_update_ui(user, src, ui_key, ui, force_open)
+	if(!ui)
+		ui = new(user, src, ui_key, "arcade_battle", name, ui_x, ui_y, master_ui, state)
+		ui.open()
+
+
+/obj/machinery/computer/arcade/battle/proc/tempui(user)
 	var/dat = "<a href='byond://?src=[REF(src)];close=1'>Close</a>"
 	dat += "<center><h4>[enemy_name]</h4></center>"
 
@@ -192,76 +303,7 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 	popup.set_title_image(user.browse_rsc_icon(icon, icon_state))
 	popup.open()
 
-/obj/machinery/computer/arcade/battle/Topic(href, href_list)
-	if(..())
-		return
-
-	if (!blocked && !gameover)
-		if (href_list["attack"])
-			blocked = TRUE
-			var/attackamt = rand(2,6)
-			var/weapon = pick(weapons)
-			temp = "You attack with a [weapon] for [attackamt] damage!"
-			playsound(loc, 'sound/arcade/hit.ogg', 50, TRUE, extrarange = -3, falloff = 10)
-			updateUsrDialog()
-			if(turtle > 0)
-				turtle--
-
-			sleep(10)
-			enemy_hp -= attackamt
-			arcade_action(usr)
-
-		else if (href_list["heal"])
-			blocked = TRUE
-			var/pointamt = rand(1,3)
-			var/healamt = rand(6,8)
-			temp = "You use [pointamt] magic to heal for [healamt] damage!"
-			playsound(loc, 'sound/arcade/heal.ogg', 50, TRUE, extrarange = -3, falloff = 10)
-			updateUsrDialog()
-			turtle++
-
-			sleep(10)
-			player_mp -= pointamt
-			player_hp += healamt
-			blocked = TRUE
-			updateUsrDialog()
-			arcade_action(usr)
-
-		else if (href_list["charge"])
-			blocked = TRUE
-			var/chargeamt = rand(4,7)
-			temp = "You regain [chargeamt] points."
-			playsound(loc, 'sound/arcade/mana.ogg', 50, TRUE, extrarange = -3, falloff = 10)
-			player_mp += chargeamt
-			if(turtle > 0)
-				turtle--
-
-			updateUsrDialog()
-			sleep(10)
-			arcade_action(usr)
-
-	if (href_list["close"])
-		usr.unset_machine()
-		usr << browse(null, "window=arcade")
-
-	else if (href_list["newgame"]) //Reset everything
-		temp = "New Round"
-		player_hp = 30
-		player_mp = 10
-		enemy_hp = 45
-		enemy_mp = 20
-		gameover = FALSE
-		turtle = 0
-
-		if(obj_flags & EMAGGED)
-			Reset()
-			obj_flags &= ~EMAGGED
-
-	add_fingerprint(usr)
-	updateUsrDialog()
-	return
-
-/obj/machinery/computer/arcade/battle/proc/arcade_action(mob/user)
+/obj/machinery/computer/arcade/battle/proc/update_state(mob/user)
 	if ((enemy_mp <= 0) || (enemy_hp <= 0))
 		if(!gameover)
 			gameover = TRUE
@@ -325,27 +367,16 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 	blocked = FALSE
 	return
 
-
 /obj/machinery/computer/arcade/battle/emag_act(mob/user)
 	if(obj_flags & EMAGGED)
 		return
 	to_chat(user, "<span class='warning'>A mesmerizing Rhumba beat starts playing from the arcade machine's speakers!</span>")
-	temp = "If you die in the game, you die for real!"
-	player_hp = 30
-	player_mp = 10
-	enemy_hp = 45
-	enemy_mp = 20
-	gameover = FALSE
-	blocked = FALSE
-
+	NewGame()
 	obj_flags |= EMAGGED
-
+	temp = "If you die in the game, you die for real!"
 	enemy_name = "Cuban Pete"
 	name = "Outbomb Cuban Pete"
-
-
-	updateUsrDialog()
-
+	SStgui.update_uis(src)
 
 
 // *** THE ORION TRAIL ** //
