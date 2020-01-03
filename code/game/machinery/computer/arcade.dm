@@ -158,7 +158,6 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 	.["player_hp"] = player_hp
 	.["player_mp"] = player_mp
 	.["enemy_hp"] = enemy_hp
-	.["enemy_mp"] = enemy_mp
 	.["enemy_icon"] = enemy_icon
 	.["gameover"] = gameover
 	.["paused"] = blocked
@@ -168,7 +167,6 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 	.["player_max_hp"] = player_max_hp
 	.["player_max_mp"] = player_max_mp
 	.["enemy_max_hp"] = enemy_max_hp
-	.["enemy_max_mp"] = enemy_max_mp
 
 
 /obj/machinery/computer/arcade/battle/proc/NewGame()
