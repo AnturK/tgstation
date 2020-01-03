@@ -151,6 +151,11 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 	var/enemy_max_hp = 45
 	var/enemy_max_mp = 20
 
+	var/enemy_icon = "debug"
+
+	ui_x = 400
+	ui_y = 800
+
 /obj/machinery/computer/arcade/battle/ui_data(mob/user)
 	. = ..()
 	.["enemy_name"] = enemy_name
@@ -177,7 +182,7 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 	enemy_mp = enemy_max_mp
 	gameover = FALSE
 	turtle = 0
-	
+
 	//One bomb run per emagging
 	if(obj_flags & EMAGGED)
 		Reset()
@@ -227,7 +232,7 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 			if("recharge")
 				recharge_action(user)
 				. = TRUE
-	
+
 	if(. && !QDELETED(user))
 		add_fingerprint(user)
 
@@ -239,11 +244,8 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 	playsound(loc, 'sound/arcade/hit.ogg', 50, TRUE, extrarange = -3, falloff = 10)
 	if(turtle > 0)
 		turtle--
-	addtimer(CALLBACK(src,.proc/attack_result, user, attackamt),10)
-
-/obj/machinery/computer/arcade/battle/proc/attack_result(mob/user, attackamt)
 	enemy_hp -= attackamt
-	update_state(user)
+	addtimer(CALLBACK(src,.proc/enemy_turn, user),10)
 
 /obj/machinery/computer/arcade/battle/proc/heal_action(mob/user)
 	blocked = TRUE
@@ -252,12 +254,9 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 	temp = "You use [pointamt] magic to heal for [healamt] damage!"
 	playsound(loc, 'sound/arcade/heal.ogg', 50, TRUE, extrarange = -3, falloff = 10)
 	turtle++
-	addtimer(CALLBACK(src,.proc/heal_result, user, pointamt, healamt),10)
-
-/obj/machinery/computer/arcade/battle/proc/heal_result(mob/user, pointamt, healamt)
 	player_mp -= pointamt
 	player_hp += healamt
-	update_state(user)
+	addtimer(CALLBACK(src,.proc/enemy_turn, user),10)
 
 /obj/machinery/computer/arcade/battle/proc/recharge_action(mob/user)
 	blocked = TRUE
@@ -266,11 +265,8 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 	playsound(loc, 'sound/arcade/mana.ogg', 50, TRUE, extrarange = -3, falloff = 10)
 	if(turtle > 0)
 		turtle--
-	addtimer(CALLBACK(src,.proc/recharge_result, user, chargeamt),10)
-
-/obj/machinery/computer/arcade/battle/proc/recharge_result(mob/user, chargeamt)
 	player_mp += chargeamt
-	update_state(user)
+	addtimer(CALLBACK(src,.proc/enemy_turn, user), 10)
 
 /obj/machinery/computer/arcade/battle/ui_interact(mob/user, ui_key = "main", datum/tgui/ui = null, force_open = FALSE, datum/tgui/master_ui = null, datum/ui_state/state = GLOB.default_state)
 	. = ..()
@@ -281,7 +277,7 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 		ui.open()
 
 
-/obj/machinery/computer/arcade/battle/proc/tempui(user)
+/obj/machinery/computer/arcade/battle/proc/tempui(mob/user)
 	var/dat = "<a href='byond://?src=[REF(src)];close=1'>Close</a>"
 	dat += "<center><h4>[enemy_name]</h4></center>"
 
@@ -301,7 +297,7 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 	popup.set_title_image(user.browse_rsc_icon(icon, icon_state))
 	popup.open()
 
-/obj/machinery/computer/arcade/battle/proc/update_state(mob/user)
+/obj/machinery/computer/arcade/battle/proc/enemy_turn(mob/user)
 	if ((enemy_mp <= 0) || (enemy_hp <= 0))
 		if(!gameover)
 			gameover = TRUE
@@ -363,6 +359,7 @@ GLOBAL_LIST_INIT(arcade_prize_pool, list(
 		SSblackbox.record_feedback("nested tally", "arcade_results", 1, list("loss", "hp", (obj_flags & EMAGGED ? "emagged":"normal")))
 
 	blocked = FALSE
+	SStgui.update_uis(src)
 	return
 
 /obj/machinery/computer/arcade/battle/emag_act(mob/user)

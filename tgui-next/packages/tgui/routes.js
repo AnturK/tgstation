@@ -3,6 +3,7 @@ import { AiAirlock } from './interfaces/AiAirlock';
 import { AirAlarm } from './interfaces/AirAlarm';
 import { AirlockElectronics } from './interfaces/AirlockElectronics';
 import { Apc } from './interfaces/Apc';
+import { ArcadeBattle } from './interfaces/ArcadeBattle';
 import { AtmosAlertConsole } from './interfaces/AtmosAlertConsole';
 import { AtmosControlConsole } from './interfaces/AtmosControlConsole';
 import { AtmosFilter } from './interfaces/AtmosFilter';
@@ -117,6 +118,10 @@ const ROUTES = {
   },
   apc: {
     component: () => Apc,
+    scrollable: false,
+  },
+  arcade_battle: {
+    component: () => ArcadeBattle,
     scrollable: false,
   },
   atmos_alert: {
