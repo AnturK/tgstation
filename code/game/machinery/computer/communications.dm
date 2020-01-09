@@ -425,9 +425,53 @@
 	playsound(src, 'sound/machines/terminal_alert.ogg', 50, FALSE)
 
 
-/obj/machinery/computer/communications/ui_interact(mob/user)
+/obj/machinery/computer/communications/ui_interact(mob/user, ui_key = "main", datum/tgui/ui = null, force_open = FALSE, datum/tgui/master_ui = null, datum/ui_state/state = GLOB.station_only_machine)
 	. = ..()
+	ui = SStgui.try_update_ui(user, src, ui_key, ui, force_open)
+	if(!ui)
+		ui = new(user, src, ui_key, "comm_console", name, ui_x, ui_y, master_ui, state)
+		ui.open()
+
+/obj/machinery/computer/communications/ui_act(action, params)
+	. = ..()
+	if(.)
+		return TRUE
+	var/valid = TRUE
+	var/mob/user = usr
+	switch(action)
+		if("login")
+			try_login(user)
+			. = TRUE
+		else
+			valid = FALSE
 	
+	if(valid && params["sound"])
+		//todo cooldown in case of hrefabuse
+		switch(params["sound"])
+			if("term")
+				playsound(src, 'sound/machines/terminal_prompt.ogg', 50, FALSE)
+			if("termconfirm")
+				playsound(src, 'sound/machines/terminal_prompt_confirm.ogg', 50, FALSE)
+
+/obj/machinery/computer/communications/proc/try_login(mob/user)
+	var/obj/item/card/id/I = user.get_idcard(TRUE)
+	if(I && istype(I))
+		if(check_access(I))
+			authenticated = 1
+			auth_id = "[I.registered_name] ([I.assignment])"
+			if((20 in I.access))
+				authenticated = 2
+			playsound(src, 'sound/machines/terminal_on.ogg', 50, FALSE)
+		if(obj_flags & EMAGGED)
+			authenticated = 2
+			auth_id = "Unknown"
+			to_chat(user, "<span class='warning'>[src] lets out a quiet alarm as its login is overridden.</span>")
+			playsound(src, 'sound/machines/terminal_on.ogg', 50, FALSE)
+			playsound(src, 'sound/machines/terminal_alert.ogg', 25, FALSE)
+			if(prob(25))
+				for(var/mob/living/silicon/ai/AI in active_ais())
+					SEND_SOUND(AI, sound('sound/machines/terminal_alert.ogg', volume = 10)) //Very quiet for balance reasons
+
 /obj/machinery/computer/communications/ui_data(mob/user)
 	. = ..()
 	.["link_lost"] = !is_station_level(z)
@@ -441,6 +485,12 @@
 	//Emergency Shuttle information
 	.["shuttle_status"] = SSshuttle.emergency.mode //todo translate to js side enum
 	.["eta"] = SSshuttle.emergency.timeLeft()
+
+	if(SSshuttle.emergencyCallAmount)
+		if(SSshuttle.emergencyLastCallLoc)
+			.["shuttle_notice"] = "Most recent shuttle call/recall traced to: [format_text(SSshuttle.emergencyLastCallLoc.name)]" //todo formatting here
+		else
+			.["shuttle_notice"] = "Unable to trace most recent shuttle call/recall signal."
 
 	//Message data
 	var/list/message_data = list()
@@ -461,13 +511,31 @@
 		message_data += list(md)
 	.["messages"] = message_data
 
+	var/datum/bank_account/D = SSeconomy.get_dep_account(ACCOUNT_CAR)
+	.["shuttle_budget"] = D.account_balance
+
 /obj/machinery/computer/communications/ui_static_data(mob/user)
 	. = ..()
 	.["ai_mode"] = issilicon(user)
 
-	//Shuttle List
+	//Purchasable Shuttle List
+	var/list/shuttle_data = list()
+	for(var/shuttle_id in SSmapping.shuttle_templates)
+		var/datum/map_template/shuttle/S = SSmapping.shuttle_templates[shuttle_id]
+		if(S.can_be_bought && S.credit_cost < INFINITY)
+			var/list/sd = list()
+			sd["name"] = S.name
+			sd["cost"] = S.credit_cost
+			sd["desc"] = S.description
+			sd["prequisites"] = S.prerequisites
+			sd["ref"] = REF(S)
+			shuttle_data += list(sd)
+	.["purchasable_shuttles"] = shuttle_data
+	
 	//Possible Displays
+
 	//Reason len
+	.["min_reason_len"] = CALL_SHUTTLE_REASON_LENGTH
 
 
 /obj/machinery/computer/communications/old_ui_interact(mob/user)

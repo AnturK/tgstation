@@ -29,6 +29,7 @@ import { ChemReactionChamber } from './interfaces/ChemReactionChamber';
 import { ChemSplitter } from './interfaces/ChemSplitter';
 import { ChemSynthesizer } from './interfaces/ChemSynthesizer';
 import { CodexGigas } from './interfaces/CodexGigas';
+import { CommConsole } from './interfaces/CommConsole';
 import { ComputerFabricator } from './interfaces/ComputerFabricator';
 import { Crayon } from './interfaces/Crayon';
 import { CrewConsole } from './interfaces/CrewConsole';
@@ -229,6 +230,10 @@ const ROUTES = {
   },
   codex_gigas: {
     component: () => CodexGigas,
+    scrollable: false,
+  },
+  comm_console: {
+    component: () => CommConsole,
     scrollable: false,
   },
   computer_fabricator: {
