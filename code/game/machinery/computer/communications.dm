@@ -424,7 +424,53 @@
 	to_chat(user, "<span class='danger'>You scramble the communication routing circuits!</span>")
 	playsound(src, 'sound/machines/terminal_alert.ogg', 50, FALSE)
 
+
 /obj/machinery/computer/communications/ui_interact(mob/user)
+	. = ..()
+	
+/obj/machinery/computer/communications/ui_data(mob/user)
+	. = ..()
+	.["link_lost"] = !is_station_level(z)
+	.["authorized"] = authenticated
+	.["id_name"] = auth_id
+	.["captain"] = authenticated == 2
+	.["message_cooldown"] = issilicon(user) ? ai_message_cooldown : message_cooldown
+
+	//Message status/visibility
+
+	//Emergency Shuttle information
+	.["shuttle_status"] = SSshuttle.emergency.mode //todo translate to js side enum
+	.["eta"] = SSshuttle.emergency.timeLeft()
+
+	//Message data
+	var/list/message_data = list()
+	for(var/datum/comm_message/M in messages)
+		var/list/md = list()
+		md["title"] = M.title
+		md["content"] = M.content
+		md["ref"] = M.ref
+		if(length(M.possible_answers))
+			var/list/answers = list()
+			for(var/i in 1 to M.possible_answers.len)
+				var/list/ad = list()
+				ad["content"] = M.possible_answers[i]
+				if(M.answered == i)
+					ad["answer"] = TRUE
+				answers += list(ad)
+			md["answers"] = answers
+		message_data += list(md)
+	.["messages"] = message_data
+
+/obj/machinery/computer/communications/ui_static_data(mob/user)
+	. = ..()
+	.["ai_mode"] = issilicon(user)
+
+	//Shuttle List
+	//Possible Displays
+	//Reason len
+
+
+/obj/machinery/computer/communications/old_ui_interact(mob/user)
 	. = ..()
 	if (z > 6)
 		to_chat(user, "<span class='boldannounce'>Unable to establish a connection</span>: \black You're too far away from the station!")
