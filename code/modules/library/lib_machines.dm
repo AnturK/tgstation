@@ -1,3 +1,5 @@
+#define PRINTER_COOLDOWN 60
+#define FETCH_COOLDOWN 60
 /*
  * Borrowbook datum
  */
@@ -22,8 +24,8 @@
 		return TRUE
 	if (!SSdbcore.Connect() || GLOB.bookcache_cooldown > world.time)
 		return FALSE
-	GLOB.bookcache_cooldown = world.time + PRINTER_COOLDOWN
-	var/datum/DBQuery/query_library_print = SSdbcore.NewQuery("SELECT content FROM [format_table_name("library")] WHERE id=[sqlid] AND isnull(deleted)")
+	GLOB.bookcache_cooldown = world.time + FETCH_COOLDOWN
+	var/datum/DBQuery/query_library_print = SSdbcore.NewQuery("SELECT content FROM [format_table_name("library")] WHERE id=[id] AND isnull(deleted)")
 	if(!query_library_print.Execute())
 		qdel(query_library_print)
 		return FALSE
@@ -47,6 +49,11 @@
 	.["title"] = title
 	.["author"] = author
 	.["category"] = category
+
+/proc/get_book_by_id(id)
+	for(var/datum/cachedbook/B in GLOB.cachedbooks) //map this ?
+		if(B.id == id)
+			return B
 
 GLOBAL_LIST(cachedbooks) // List of our cached book datums
 GLOBAL_LIST(bookcache_data) //Above formatted for ui
@@ -74,8 +81,6 @@ GLOBAL_VAR(bookcache_cooldown)
 	qdel(query_library_cache)	
 
 
-#define PRINTER_COOLDOWN 60
-
 /*
  * Library Computer
  * After 860 days, it's finally a buildable computer.
@@ -86,7 +91,7 @@ GLOBAL_VAR(bookcache_cooldown)
 /obj/machinery/computer/libraryconsole/bookmanagement
 	name = "book inventory management console"
 	desc = "Librarian's command station."
-	screenstate = 0 // 0 - Main Menu, 1 - Inventory, 2 - Checked Out, 3 - Check Out a Book
+	var/screenstate = 0 // 0 - Main Menu, 1 - Inventory, 2 - Checked Out, 3 - Check Out a Book
 	verb_say = "beeps"
 	verb_ask = "beeps"
 	verb_exclaim = "beeps"
@@ -197,14 +202,14 @@ GLOBAL_VAR(bookcache_cooldown)
 				scanner = findscanner(9)
 			if(!scanner)
 				dat += "<FONT color=red>No scanner found within wireless network range.</FONT><BR>"
-			else if(!scanner.cache)
+			else if(!scanner.cached_data)
 				dat += "<FONT color=red>No data found in scanner memory.</FONT><BR>"
 			else
 				dat += "<TT>Data marked for upload...</TT><BR>"
-				dat += "<TT>Title: </TT>[scanner.cache.name]<BR>"
-				if(!scanner.cache.author)
-					scanner.cache.author = "Anonymous"
-				dat += "<TT>Author: </TT><A href='?src=[REF(src)];setauthor=1'>[scanner.cache.author]</A><BR>"
+				dat += "<TT>Title: </TT>[scanner.cached_title]<BR>"
+				if(!scanner.cached_author)
+					scanner.cached_author = "Anonymous"
+				dat += "<TT>Author: </TT><A href='?src=[REF(src)];setauthor=1'>[scanner.cached_author]</A><BR>"
 				dat += "<TT>Category: </TT><A href='?src=[REF(src)];setcategory=1'>[upload_category]</A><BR>"
 				dat += "<A href='?src=[REF(src)];upload=1'>\[Upload\]</A><BR>"
 			dat += "<A href='?src=[REF(src)];switchscreen=0'>(Return to main menu)</A><BR>"
@@ -214,10 +219,10 @@ GLOBAL_VAR(bookcache_cooldown)
 				scanner = findscanner(9)
 			if(!scanner)
 				dat += "<FONT color=red>No scanner found within wireless network range.</FONT><BR>"
-			else if(!scanner.cache)
+			else if(!scanner.cached_data)
 				dat += "<FONT color=red>No data found in scanner memory.</FONT><BR>"
 			else
-				dat += "<TT>Post [scanner.cache.name] to station newscasters?</TT>"
+				dat += "<TT>Post [scanner.cached_title] to station newscasters?</TT>"
 				dat += "<A href='?src=[REF(src)];newspost=1'>\[Post\]</A><BR>"
 			dat += "<A href='?src=[REF(src)];switchscreen=0'>(Return to main menu)</A><BR>"
 		if(7)
@@ -319,35 +324,34 @@ GLOBAL_VAR(bookcache_cooldown)
 	if(href_list["setauthor"])
 		var/newauthor = stripped_input(usr, "Enter the author's name: ")
 		if(newauthor)
-			scanner.cache.author = newauthor
+			scanner.cached_author = newauthor
 	if(href_list["setcategory"])
 		var/newcategory = input("Choose a category: ") in list("Fiction", "Non-Fiction", "Adult", "Reference", "Religion","Technical")
 		if(newcategory)
 			upload_category = newcategory
 	if(href_list["upload"])
-		if(scanner)
-			if(scanner.cache)
-				var/choice = input("Are you certain you wish to upload this title to the Archive?") in list("Confirm", "Abort")
-				if(choice == "Confirm")
-					if (!SSdbcore.Connect())
-						alert("Connection to Archive has been severed. Aborting.")
-					else
+		if(scanner && scanner.cached_data)
+			var/choice = input("Are you certain you wish to upload this title to the Archive?") in list("Confirm", "Abort")
+			if(choice == "Confirm")
+				if (!SSdbcore.Connect())
+					alert("Connection to Archive has been severed. Aborting.")
+				else
 
-						var/sqltitle = sanitizeSQL(scanner.cache.name)
-						var/sqlauthor = sanitizeSQL(scanner.cache.author)
-						var/sqlcontent = sanitizeSQL(scanner.cache.dat)
-						var/sqlcategory = sanitizeSQL(upload_category)
-						var/sqlckey = sanitizeSQL(usr.ckey)
-						var/msg = "[key_name(usr)] has uploaded the book titled [scanner.cache.name], [length(scanner.cache.dat)] signs"
-						var/datum/DBQuery/query_library_upload = SSdbcore.NewQuery("INSERT INTO [format_table_name("library")] (author, title, content, category, ckey, datetime, round_id_created) VALUES ('[sqlauthor]', '[sqltitle]', '[sqlcontent]', '[sqlcategory]', '[sqlckey]', Now(), '[GLOB.round_id]')")
-						if(!query_library_upload.Execute())
-							qdel(query_library_upload)
-							alert("Database error encountered uploading to Archive")
-							return
-						else
-							log_game(msg)
-							qdel(query_library_upload)
-							alert("Upload Complete. Uploaded title will be unavailable for printing for a short period")
+					var/sqltitle = sanitizeSQL(scanner.cached_title)
+					var/sqlauthor = sanitizeSQL(scanner.cached_author)
+					var/sqlcontent = sanitizeSQL(scanner.cached_data)
+					var/sqlcategory = sanitizeSQL(upload_category)
+					var/sqlckey = sanitizeSQL(usr.ckey)
+					var/msg = "[key_name(usr)] has uploaded the book titled [scanner.cached_title], [length(scanner.cached_data)] signs"
+					var/datum/DBQuery/query_library_upload = SSdbcore.NewQuery("INSERT INTO [format_table_name("library")] (author, title, content, category, ckey, datetime, round_id_created) VALUES ('[sqlauthor]', '[sqltitle]', '[sqlcontent]', '[sqlcategory]', '[sqlckey]', Now(), '[GLOB.round_id]')")
+					if(!query_library_upload.Execute())
+						qdel(query_library_upload)
+						alert("Database error encountered uploading to Archive")
+						return
+					else
+						log_game(msg)
+						qdel(query_library_upload)
+						alert("Upload Complete. Uploaded title will be unavailable for printing for a short period")
 	if(href_list["newspost"])
 		if(!GLOB.news_network)
 			alert("No news network found on station. Aborting.")
@@ -358,7 +362,7 @@ GLOBAL_VAR(bookcache_cooldown)
 				break
 		if(!channelexists)
 			GLOB.news_network.CreateFeedChannel("Nanotrasen Book Club", "Library", null)
-		GLOB.news_network.SubmitArticle(scanner.cache.dat, "[scanner.cache.name]", "Nanotrasen Book Club", null)
+		GLOB.news_network.SubmitArticle(scanner.cached_data, "[scanner.cached_title]", "Nanotrasen Book Club", null)
 		alert("Upload complete. Your uploaded title is now available on station newscasters.")
 	if(href_list["orderbyid"])
 		if(cooldown > world.time)
@@ -372,8 +376,8 @@ GLOBAL_VAR(bookcache_cooldown)
 	if(href_list["targetid"])
 		var/datum/cachedbook/B = get_book_by_id(sanitizeSQL(href_list["targetid"]))
 		if(!B.fetch_content())
-			to_chat(user,"Book printing failure")
-		B.print_book(get_turf(src))
+			to_chat(usr,"Book printing failure")
+		B.create_book(get_turf(src))
 		visible_message("<span class='notice'>[src]'s printer hums as it produces a completely bound book. How did it do that?</span>")
 		return
 	
@@ -406,53 +410,42 @@ GLOBAL_VAR(bookcache_cooldown)
 	icon_state = "bigscanner"
 	desc = "It servers the purpose of scanning stuff."
 	density = TRUE
-	var/obj/item/book/cache		// Last scanned book
+
+	var/cached_title
+	var/cached_author
+	var/cached_data
 
 /obj/machinery/libraryscanner/attackby(obj/O, mob/user, params)
 	if(istype(O, /obj/item/book))
-		if(!user.transferItemToLoc(O, src))
-			return
+		scan_book(O)
 	else
 		return ..()
+
+/obj/machinery/libraryscanner/update_icon_state()
+	. = ..()
+	if(cached_title)
+		icon_state = "bigscanner"
+	else
+		icon_state = "bigscanner" // Add ready icon
+
+/obj/machinery/libraryscanner/proc/scan_book(obj/item/book/B)
+	cached_title = B.title
+	cached_author = B.author || "Anonymous"
+	cached_data = B.dat
+	update_icon_state()
+
+/obj/machinery/libraryscanner/proc/clear_cache()
+	cached_title = null
+	cached_author = null
+	cached_data = null
+	update_icon_state()
 
 /obj/machinery/libraryscanner/attack_hand(mob/user)
 	. = ..()
 	if(.)
 		return
-	usr.set_machine(src)
-	var/dat = "" // <META HTTP-EQUIV='Refresh' CONTENT='10'>
-	if(cache)
-		dat += "<FONT color=#005500>Data stored in memory.</FONT><BR>"
-	else
-		dat += "No data stored in memory.<BR>"
-	dat += "<A href='?src=[REF(src)];scan=1'>\[Scan\]</A>"
-	if(cache)
-		dat += "       <A href='?src=[REF(src)];clear=1'>\[Clear Memory\]</A><BR><BR><A href='?src=[REF(src)];eject=1'>\[Remove Book\]</A>"
-	else
-		dat += "<BR>"
-	var/datum/browser/popup = new(user, "scanner", name, 600, 400)
-	popup.set_content(dat)
-	popup.set_title_image(user.browse_rsc_icon(src.icon, src.icon_state))
-	popup.open()
-
-/obj/machinery/libraryscanner/Topic(href, href_list)
-	if(..())
-		usr << browse(null, "window=scanner")
-		onclose(usr, "scanner")
-		return
-
-	if(href_list["scan"])
-		for(var/obj/item/book/B in contents)
-			cache = B
-			break
-	if(href_list["clear"])
-		cache = null
-	if(href_list["eject"])
-		for(var/obj/item/book/B in contents)
-			B.forceMove(drop_location())
-	src.add_fingerprint(usr)
-	src.updateUsrDialog()
-	return
+	clear_cache()
+	to_chat(user,"<span class='notice'>You clear [src] memory.</span>")
 
 
 /*
@@ -500,18 +493,38 @@ GLOBAL_VAR(bookcache_cooldown)
 
 
 /obj/machinery/computer/library
-	var/search_only = FALSE /// Is this limited to searching only.
-
-
-/obj/machinery/computer/library/ui_static_data(mob/user)
-	. = ..()
-	.["books"] = 
-
-/obj/machinery/computer/library/public
-	name = "library visitor console"
+	name = "book inventory management console"
+	desc = "Librarian's command station."
 	icon_state = "oldcomp"
 	icon_screen = "library"
 	icon_keyboard = null
 	circuit = /obj/item/circuitboard/computer/libraryconsole
+	
+	var/search_only = FALSE /// Is this limited to searching only.
+	var/obj/machinery/libraryscanner/scanner // Book scanner used as input for uploading
+
+/obj/machinery/computer/library/ui_static_data(mob/user)
+	. = ..()
+	.["search_only"] = search_only
+	.["books"] = GLOB.bookcache_data
+
+/obj/machinery/computer/library/ui_data(mob/user)
+	. = ..()
+	.["scanner_present"] = scanner
+	.["scanner_title"] = scanner?.cached_title
+	.["scanner_author"] = scanner?.cached_author
+	.["inventory"] = list()
+
+/obj/machinery/computer/library/proc/CheckoutBook(obj/item/book/B)
+	return
+
+/obj/machinery/computer/library/proc/UploadBook()
+	return
+
+/obj/machinery/computer/library/proc/PrintBook()
+	return
+
+/obj/machinery/computer/library/public
+	name = "library visitor console"
 	desc = "Checked out books MUST be returned on time."
 	search_only = TRUE
