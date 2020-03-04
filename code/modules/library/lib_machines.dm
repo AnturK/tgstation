@@ -1,116 +1,3 @@
-/* Library Machines
- *
- * Contains:
- *		Borrowbook datum
- *		Library Public Computer
- *		Cachedbook datum
- *		Library Computer
- *		Library Scanner
- *		Book Binder
- */
-
-
-
-/*
- * Library Public Computer
- */
-/obj/machinery/computer/libraryconsole
-	name = "library visitor console"
-	icon_state = "oldcomp"
-	icon_screen = "library"
-	icon_keyboard = null
-	circuit = /obj/item/circuitboard/computer/libraryconsole
-	desc = "Checked out books MUST be returned on time."
-	var/screenstate = 0
-	var/title
-	var/category = "Any"
-	var/author
-	var/SQLquery
-
-/obj/machinery/computer/libraryconsole/ui_interact(mob/user)
-	. = ..()
-	var/dat = "" // <META HTTP-EQUIV='Refresh' CONTENT='10'>
-	switch(screenstate)
-		if(0)
-			dat += "<h2>Search Settings</h2><br>"
-			dat += "<A href='?src=[REF(src)];settitle=1'>Filter by Title: [title]</A><BR>"
-			dat += "<A href='?src=[REF(src)];setcategory=1'>Filter by Category: [category]</A><BR>"
-			dat += "<A href='?src=[REF(src)];setauthor=1'>Filter by Author: [author]</A><BR>"
-			dat += "<A href='?src=[REF(src)];search=1'>\[Start Search\]</A><BR>"
-		if(1)
-			if (!SSdbcore.Connect())
-				dat += "<font color=red><b>ERROR</b>: Unable to contact External Archive. Please contact your system administrator for assistance.</font><BR>"
-			else if(QDELETED(user))
-				return
-			else if(!SQLquery)
-				dat += "<font color=red><b>ERROR</b>: Malformed search request. Please contact your system administrator for assistance.</font><BR>"
-			else
-				dat += "<table>"
-				dat += "<tr><td>AUTHOR</td><td>TITLE</td><td>CATEGORY</td><td>SS<sup>13</sup>BN</td></tr>"
-
-				var/datum/DBQuery/query_library_list_books = SSdbcore.NewQuery(SQLquery)
-				if(!query_library_list_books.Execute())
-					dat += "<font color=red><b>ERROR</b>: Unable to retrieve book listings. Please contact your system administrator for assistance.</font><BR>"
-				else
-					while(query_library_list_books.NextRow())
-						var/author = query_library_list_books.item[1]
-						var/title = query_library_list_books.item[2]
-						var/category = query_library_list_books.item[3]
-						var/id = query_library_list_books.item[4]
-						dat += "<tr><td>[author]</td><td>[title]</td><td>[category]</td><td>[id]</td></tr>"
-				qdel(query_library_list_books)
-				if(QDELETED(user))
-					return
-				dat += "</table><BR>"
-			dat += "<A href='?src=[REF(src)];back=1'>\[Go Back\]</A><BR>"
-	var/datum/browser/popup = new(user, "publiclibrary", name, 600, 400)
-	popup.set_content(dat)
-	popup.set_title_image(user.browse_rsc_icon(src.icon, src.icon_state))
-	popup.open()
-
-/obj/machinery/computer/libraryconsole/Topic(href, href_list)
-	. = ..()
-	if(..())
-		usr << browse(null, "window=publiclibrary")
-		onclose(usr, "publiclibrary")
-		return
-
-	if(href_list["settitle"])
-		var/newtitle = input("Enter a title to search for:") as text|null
-		if(newtitle)
-			title = sanitize(newtitle)
-		else
-			title = null
-		title = sanitizeSQL(title)
-	if(href_list["setcategory"])
-		var/newcategory = input("Choose a category to search for:") in list("Any", "Fiction", "Non-Fiction", "Adult", "Reference", "Religion")
-		if(newcategory)
-			category = sanitize(newcategory)
-		else
-			category = "Any"
-		category = sanitizeSQL(category)
-	if(href_list["setauthor"])
-		var/newauthor = input("Enter an author to search for:") as text|null
-		if(newauthor)
-			author = sanitize(newauthor)
-		else
-			author = null
-		author = sanitizeSQL(author)
-	if(href_list["search"])
-		SQLquery = "SELECT author, title, category, id FROM [format_table_name("library")] WHERE isnull(deleted) AND "
-		if(category == "Any")
-			SQLquery += "author LIKE '%[author]%' AND title LIKE '%[title]%'"
-		else
-			SQLquery += "author LIKE '%[author]%' AND title LIKE '%[title]%' AND category='[category]'"
-		screenstate = 1
-
-	if(href_list["back"])
-		screenstate = 0
-
-	src.add_fingerprint(usr)
-	src.updateUsrDialog()
-	return
-
 /*
  * Borrowbook datum
  */
@@ -128,9 +15,42 @@
 	var/title
 	var/author
 	var/category
+	var/content
+
+/datum/cachedbook/proc/fetch_content()
+	if(content)
+		return TRUE
+	if (!SSdbcore.Connect() || GLOB.bookcache_cooldown > world.time)
+		return FALSE
+	GLOB.bookcache_cooldown = world.time + PRINTER_COOLDOWN
+	var/datum/DBQuery/query_library_print = SSdbcore.NewQuery("SELECT content FROM [format_table_name("library")] WHERE id=[sqlid] AND isnull(deleted)")
+	if(!query_library_print.Execute())
+		qdel(query_library_print)
+		return FALSE
+	while(query_library_print.NextRow())
+		content = query_library_print.item[2]
+		break
+	qdel(query_library_print)
+	return TRUE
+
+/datum/cachedbook/proc/create_book(loc)
+	var/obj/item/book/B = new(loc)
+	B.name = "Book: [title]"
+	B.title = title
+	B.author = author
+	B.dat = content
+	B.icon_state = "book[rand(1,8)]"
+
+/datum/cachedbook/proc/get_ui_data()
+	. = list()
+	.["id"] = id
+	.["title"] = title
+	.["author"] = author
+	.["category"] = category
 
 GLOBAL_LIST(cachedbooks) // List of our cached book datums
-
+GLOBAL_LIST(bookcache_data) //Above formatted for ui
+GLOBAL_VAR(bookcache_cooldown)
 
 /proc/load_library_db_to_cache()
 	if(GLOB.cachedbooks)
@@ -138,6 +58,7 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 	if(!SSdbcore.Connect())
 		return
 	GLOB.cachedbooks = list()
+	GLOB.bookcache_data = list()
 	var/datum/DBQuery/query_library_cache = SSdbcore.NewQuery("SELECT id, author, title, category FROM [format_table_name("library")] WHERE isnull(deleted)")
 	if(!query_library_cache.Execute())
 		qdel(query_library_cache)
@@ -149,8 +70,8 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 		newbook.title = query_library_cache.item[3]
 		newbook.category = query_library_cache.item[4]
 		GLOB.cachedbooks += newbook
-	qdel(query_library_cache)
-
+		GLOB.bookcache_data += list(newbook.get_ui_data())
+	qdel(query_library_cache)	
 
 
 #define PRINTER_COOLDOWN 60
@@ -449,32 +370,13 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 					href_list["targetid"] = num2text(orderid)
 
 	if(href_list["targetid"])
-		var/sqlid = sanitizeSQL(href_list["targetid"])
-		if (!SSdbcore.Connect())
-			alert("Connection to Archive has been severed. Aborting.")
-		if(cooldown > world.time)
-			say("Printer unavailable. Please allow a short time before attempting to print.")
-		else
-			cooldown = world.time + PRINTER_COOLDOWN
-			var/datum/DBQuery/query_library_print = SSdbcore.NewQuery("SELECT * FROM [format_table_name("library")] WHERE id=[sqlid] AND isnull(deleted)")
-			if(!query_library_print.Execute())
-				qdel(query_library_print)
-				say("PRINTER ERROR! Failed to print document (0x0000000F)")
-				return
-			while(query_library_print.NextRow())
-				var/author = query_library_print.item[2]
-				var/title = query_library_print.item[3]
-				var/content = query_library_print.item[4]
-				if(!QDELETED(src))
-					var/obj/item/book/B = new(get_turf(src))
-					B.name = "Book: [title]"
-					B.title = title
-					B.author = author
-					B.dat = content
-					B.icon_state = "book[rand(1,8)]"
-					visible_message("<span class='notice'>[src]'s printer hums as it produces a completely bound book. How did it do that?</span>")
-				break
-			qdel(query_library_print)
+		var/datum/cachedbook/B = get_book_by_id(sanitizeSQL(href_list["targetid"]))
+		if(!B.fetch_content())
+			to_chat(user,"Book printing failure")
+		B.print_book(get_turf(src))
+		visible_message("<span class='notice'>[src]'s printer hums as it produces a completely bound book. How did it do that?</span>")
+		return
+	
 	if(href_list["printbible"])
 		if(cooldown < world.time)
 			var/obj/item/storage/book/bible/B = new /obj/item/storage/book/bible(src.loc)
@@ -595,3 +497,21 @@ GLOBAL_LIST(cachedbooks) // List of our cached book datums
 			qdel(P)
 		else
 			P.forceMove(drop_location())
+
+
+/obj/machinery/computer/library
+	var/search_only = FALSE /// Is this limited to searching only.
+
+
+/obj/machinery/computer/library/ui_static_data(mob/user)
+	. = ..()
+	.["books"] = 
+
+/obj/machinery/computer/library/public
+	name = "library visitor console"
+	icon_state = "oldcomp"
+	icon_screen = "library"
+	icon_keyboard = null
+	circuit = /obj/item/circuitboard/computer/libraryconsole
+	desc = "Checked out books MUST be returned on time."
+	search_only = TRUE
