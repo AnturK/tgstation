@@ -14,15 +14,20 @@
 
 	var/maximum_pressure = 90 * ONE_ATMOSPHERE
 
+	/// Will try to connect the portable to port underneath if one exists.
+	var/try_to_connect_on_mapload = FALSE
+
 /obj/machinery/portable_atmospherics/New()
 	..()
 	SSair.atmos_machinery += src
 
-/obj/machinery/portable_atmospherics/Initialize()
+/obj/machinery/portable_atmospherics/Initialize(mapload)
 	. = ..()
 	air_contents = new
 	air_contents.volume = volume
 	air_contents.temperature = T20C
+	if(mapload && try_to_connect_on_mapload)
+		try_to_connect()
 
 /obj/machinery/portable_atmospherics/Destroy()
 	SSair.atmos_machinery -= src
@@ -32,6 +37,16 @@
 	air_contents = null
 
 	return ..()
+
+/// Tries to connect with connector underneath
+/obj/machinery/portable_atmospherics/proc/try_to_connect()
+	var/obj/machinery/atmospherics/components/unary/portables_connector/possible_port = locate(/obj/machinery/atmospherics/components/unary/portables_connector) in loc
+	if(!possible_port)
+		stack_trace("[src] trying to connect to not existing portable connector at mapload at [COORD(src)].")
+		return
+	if(!connect(possible_port))
+		stack_trace("[src] failed to connect to portable connector at mapload at [COORD(src)].")
+		return
 
 /obj/machinery/portable_atmospherics/ex_act(severity, target)
 	if(severity == 1 || target == src)
