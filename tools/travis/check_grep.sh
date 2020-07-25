@@ -72,5 +72,9 @@ do
         fi
     done < <(jq -r '[.map_file] | flatten | .[]' $json)
 done
+if grep -IUlr $'\r' --exclude-dir={.git,data,tgui}; then
+    echo "ERROR: Found CRLF."
+    st=1
+fi;
 
 exit $st
