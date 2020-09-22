@@ -300,6 +300,10 @@
 		current_type = type2parent(current_type)
 		. += current_type
 
+
+/datum
+	var/announce_signals = FALSE
+
 /**
   * Internal proc to handle most all of the signaling procedure
   *
@@ -507,6 +511,17 @@
 
 	if(target == AddComponent(target))
 		target._JoinParent()
+
+/datum
+	var/announce_signals = FALSE
+
+/datum/proc/AnnounceSS(sigtype)
+	. = FALSE
+	to_chat_immediate(world,"SendSignal [sigtype]")
+
+/atom/proc/print_appearance_ref()
+	to_chat(world,"[ref(appearance)]")
+
 
 /**
   * Transfer all components to target
