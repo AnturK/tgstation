@@ -22,10 +22,10 @@
 
 //huge reason why i'm not using the trailer variable: coasters go up one at a time
 /obj/effect/rollercoaster_hint/go_up/action(var/obj/vehicle/ridden/rollercoaster/coaster)
-	coaster.z += 1
+	coaster.forceMove(locate(coaster.x,coaster.y,coaster.z+1))
 
 /obj/effect/rollercoaster_hint/go_down/action(var/obj/vehicle/ridden/rollercoaster/coaster)
-	coaster.z -= 1
+	coaster.forceMove(locate(coaster.x,coaster.y,coaster.z-1))
 
 /obj/vehicle/ridden/rollercoaster
 	name = "Terror of the Tracks"
@@ -43,6 +43,8 @@
 	var/in_progress = FALSE
 	var/obj/structure/disposalpipe/current_pipe
 	var/coaster_speed = 2 //how long in deciseconds the rollercoaster waits before moving
+
+	var/hint_movement = FALSE
 
 /obj/vehicle/ridden/rollercoaster/Initialize()
 	. = ..()
@@ -80,7 +82,7 @@
 		rider.Stun(666 HOURS)//JANK ALERT
 	current_pipe = locate() in get_turf(src)
 	in_progress = TRUE
-	INVOKE_ASYNC(current_pipe, /obj/structure/disposalpipe/proc/coaster_travel, src)
+	INVOKE_ASYNC(src, .proc/coaster_travel)
 	if(start_previous)
 		front_coaster = TRUE
 		for(var/i in previous_coasters)
@@ -108,15 +110,27 @@
 		trailerturf = get_step(coaster, search_direction)//turf behind now corrected coaster
 	addtimer(CALLBACK(src, .proc/start), 30 SECONDS) //auto restart 30 secs!
 
-/obj/vehicle/ridden/rollercoaster/Move(newloc, dir)
+/obj/vehicle/ridden/rollercoaster/Moved(oldloc, dir)
 	. = ..()
 	var/turf/destination = get_turf(src)
 	var/obj/effect/rollercoaster_hint/hint
 	hint = locate() in destination
 	if(hint)
 		hint.action(src)
+	if(in_progress && destination == get_turf(src))
+		current_pipe = locate() in destination
+		if(current_pipe)
+			addtimer(CALLBACK(src, .proc/coaster_travel),coaster_speed)
 
-/obj/vehicle/ridden/rollercoaster/Bump(atom/clong)
+
+/obj/vehicle/ridden/rollercoaster/proc/coaster_travel()
+	setDir(nextdir_coaster())
+	step(src, dir)
+
+/obj/vehicle/ridden/rollercoaster/proc/nextdir_coaster()
+	return current_pipe.dpdir & (~turn(dir, 180))
+
+/obj/vehicle/ridden/rollercoaster/Bumped(atom/clong)
 
 	if(isturf(clong) || isobj(clong))
 		if(clong.density && !isturf(clong))
@@ -127,3 +141,18 @@
 /obj/vehicle/ridden/rollercoaster/proc/penetrate(mob/living/smeared_mob)
 	smeared_mob.visible_message("<span class='danger'>[smeared_mob] is smashed by [src]!</span>" , "<span class='userdanger'>The coaster smashes you!</span>" , "<span class='danger'>You hear a CLANG!</span>")
 	smeared_mob.gib()
+
+/obj/machinery/vending/clothing/armsy
+	name = "Terror of the Tracks Souvenir Vendor"
+	desc = "YOU SURVIVED THE TERROR OF THE TRACKS! NOW BUY A GAUDY T-SHIRT THAT MAKES PEOPLE THINK LESS OF YOU!"
+	icon_state = "starkist"
+	product_slogans = "WHY NOT BUY A SOUVENIR?;ONLY MILDLY OVERPRICED!;BUY OUR CHEAP CRAPPY MERCHANDICE, CONSUMER!"
+	vend_reply = "REMEMBER, NO REFUNDS, NO EXCEPTIONS!"
+	products = list(/obj/item/clothing/suit/armsyshirt = 30, /obj/item/toy/plush/armsyplushie = 30)
+	contraband = list(/obj/item/toy/plush/lizardplushie = 1)
+	premium = null
+	default_price = 60
+	extra_price = 120
+	payment_department = NO_FREEBIES
+	light_mask = "starkist-light-mask"
+	light_color = COLOR_LIGHT_ORANGE
