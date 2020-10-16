@@ -22,10 +22,10 @@
 
 //huge reason why i'm not using the trailer variable: coasters go up one at a time
 /obj/effect/rollercoaster_hint/go_up/action(var/obj/vehicle/ridden/rollercoaster/coaster)
-	coaster.forceMove(locate(coaster.x,coaster.y,coaster.z+1))
+	coaster.Move(locate(coaster.x,coaster.y,coaster.z+1))
 
 /obj/effect/rollercoaster_hint/go_down/action(var/obj/vehicle/ridden/rollercoaster/coaster)
-	coaster.forceMove(locate(coaster.x,coaster.y,coaster.z-1))
+	coaster.Move(locate(coaster.x,coaster.y,coaster.z-1))
 
 /obj/vehicle/ridden/rollercoaster
 	name = "Terror of the Tracks"
@@ -99,16 +99,21 @@
 	var/search_direction = turn(dir, 180)//behind us
 	var/turf/trailerturf = get_step(src, search_direction)//turf behind us
 	in_progress = FALSE
+	unload_rider()
 	for(var/i in previous_coasters) //stops movement, and since some parts will not have reached the final terminus we need to move them there ourselves
 		var/obj/vehicle/ridden/rollercoaster/coaster = i
 		coaster.in_progress = FALSE
-		var/mob/living/rider = occupants[1]
-		if(rider)
-			rider.forceMove(trailerturf)
 		coaster.forceMove(trailerturf)
 		coaster.dir = dir
 		trailerturf = get_step(coaster, search_direction)//turf behind now corrected coaster
+		coaster.unload_rider()
+
 	addtimer(CALLBACK(src, .proc/start), 30 SECONDS) //auto restart 30 secs!
+
+/obj/vehicle/ridden/rollercoaster/proc/unload_rider()
+	var/mob/living/rider = occupants[1]
+	if(rider)
+		rider.forceMove(get_turf(src))
 
 /obj/vehicle/ridden/rollercoaster/Moved(oldloc, dir)
 	. = ..()
@@ -124,6 +129,8 @@
 
 
 /obj/vehicle/ridden/rollercoaster/proc/coaster_travel()
+	if(!in_progress)
+		return
 	setDir(nextdir_coaster())
 	step(src, dir)
 
