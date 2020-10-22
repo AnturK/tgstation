@@ -64,6 +64,7 @@ All ShuttleMove procs go here
 	if(isopenturf(newT))
 		var/turf/open/new_open = newT
 		new_open.copy_air_with_tile(src)
+	newT.component_debug = component_debug
 	//Decal stuff
 	SEND_SIGNAL(src, COMSIG_TURF_ON_SHUTTLE_MOVE, newT)
 

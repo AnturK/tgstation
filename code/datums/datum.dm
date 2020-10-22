@@ -57,6 +57,9 @@
 	*/
 	var/list/cooldowns
 
+
+	var/component_debug = FALSE
+
 #ifdef TESTING
 	var/running_find_references
 	var/last_find_references = 0
