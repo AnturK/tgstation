@@ -10,13 +10,23 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Build and Publish Docker Image to Registry
-        uses: elgohr/Publish-Docker-Github-Action@master
-        with:
-          name: tgstation/tgstation
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          dockerfile: Dockerfile
-          tags: "latest"
+    - name: "Check for ACTION_ENABLER secret and pass true to output if it exists to be checked by later steps"
+      id: value_holder
+      env:
+        ENABLER_SECRET: ${{ secrets.ACTION_ENABLER }}
+      run: |
+        unset SECRET_EXISTS
+        if [ -n "$ENABLER_SECRET" ]; then SECRET_EXISTS=true ; fi
+        echo "::set-output name=ACTIONS_ENABLED::$SECRET_EXISTS"
+    - name: Checkout
+      if: steps.value_holder.outputs.ACTIONS_ENABLED
+      uses: actions/checkout@v2
+    - name: Build and Publish Docker Image to Registry
+      if: steps.value_holder.outputs.ACTIONS_ENABLED
+      uses: elgohr/Publish-Docker-Github-Action@master
+      with:
+        name: tgstation/tgstation
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        dockerfile: Dockerfile
+        tags: "latest"
