@@ -1972,3 +1972,18 @@
 		if(!datum_to_mark)
 			return
 		return usr.client?.mark_datum(datum_to_mark)
+	else if(href_list["approve_wordle_dictionary"])
+		if(!check_rights(R_ADMIN))
+			return
+		var/new_word = lowertext(href_list["approve_wordle_dictionary"])
+		var/mob/requester = locate(href_list["user"])
+		if(!new_word)
+			return
+		var/datum/wordle/T = new
+		if(T.dictionary.Find(new_word))
+			to_chat(usr,span_admin("Word already in dictionary."))
+			return
+		T.dictionary += new_word
+		rustg_file_append("[new_word]\n","data/customWordleDictionary.txt")
+		to_chat(usr,span_admin("Word [new_word] added to dictionary."))
+		to_chat(requester,span_notice("Your requested word [new_word] was added to dictionary."))

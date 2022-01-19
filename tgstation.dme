@@ -1763,6 +1763,7 @@
 #include "code\game\turfs\open\floor\plating\planet.dm"
 #include "code\game\turfs\open\space\space.dm"
 #include "code\game\turfs\open\space\transit.dm"
+#include "code\modules\wordle.dm"
 #include "code\modules\actionspeed\_actionspeed_modifier.dm"
 #include "code\modules\actionspeed\modifiers\addiction.dm"
 #include "code\modules\actionspeed\modifiers\base.dm"
