@@ -1,5 +1,3 @@
-// MOTHBLOCKS TODO: Check for screenshots that exist in repo, but are not saved.
-// MOTHBLOCKS TODO: Make these use the GitHub annotation thing
 const fs = require("fs")
 const path = require("path")
 const pixelmatch = require("pixelmatch")
@@ -35,7 +33,10 @@ const fail = (screenshotName, newScreenshot, oldScreenshot, diff) => {
 	})
 
 	fs.copyFileSync(newScreenshot, path.join(outputPath, "new.png"))
-	fs.copyFileSync(oldScreenshot, path.join(outputPath, "old.png"))
+
+	if (oldScreenshot) {
+		fs.copyFileSync(oldScreenshot, path.join(outputPath, "old.png"))
+	}
 
 	if (diff) {
 		fs.writeFileSync(path.join(outputPath, "diff.png"), PNG.sync.write(diff))
@@ -43,7 +44,7 @@ const fail = (screenshotName, newScreenshot, oldScreenshot, diff) => {
 }
 
 for (const filename of fs.readdirSync(artifactsDirectory)) {
-	const fullPath = path.join(artifactsDirectory, filename)
+	const fullPath = path.join(artifactsDirectory, filename) // MOTHBLOCKS TODO: "screenshots_new"
 
 	const fullPathStat = fs.statSync(fullPath)
 	if (!fullPathStat.isDirectory()) {
@@ -55,13 +56,13 @@ for (const filename of fs.readdirSync(artifactsDirectory)) {
 			continue
 		}
 
+		const fullPathScreenshotName = path.join(fullPath, screenshotName)
+
 		const fullPathCompareScreenshot = path.join(screenshotsDirectory, screenshotName)
 		if (!fs.existsSync(fullPathCompareScreenshot)) {
-			console.error(`${screenshotName} did not correlate to a known screenshot test`)
-			process.exit(1)
+			fail(screenshotName, fullPathScreenshotName)
+			continue
 		}
-
-		const fullPathScreenshotName = path.join(fullPath, screenshotName)
 
 		const screenshotNew = PNG.sync.read(fs.readFileSync(fullPathScreenshotName))
 		const screenshotCompare = PNG.sync.read(fs.readFileSync(fullPathCompareScreenshot))
