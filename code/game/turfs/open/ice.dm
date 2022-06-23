@@ -19,6 +19,22 @@
 	. = ..()
 	MakeSlippery(TURF_WET_PERMAFROST, INFINITY, 0, INFINITY, TRUE)
 
+/turf/open/misc/ice/attackby(obj/item/W, mob/user, params)
+	if(W.tool_behaviour == TOOL_MINING)
+		user.balloon_alert(user,"cutting ice")
+		if(W.use_tool(src, user, 100, volume=100))
+			if(!istype(src, /turf/open/misc/ice))
+				return TRUE
+			create_icehole()
+		return
+	. = ..()
+
+/turf/open/misc/ice/proc/create_icehole()
+	var/obj/effect/icehole/hole = locate() in src
+	if(hole)
+		return
+	hole = new(src)
+
 /turf/open/misc/ice/break_tile()
 	return
 
