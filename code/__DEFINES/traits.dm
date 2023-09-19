@@ -1298,3 +1298,6 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 
 ///Trait given by /datum/element/relay_attacker
 #define TRAIT_RELAYING_ATTACKER "relaying_attacker"
+
+/// Trait applied by arm-wrestling
+#define ARM_WRESTLING_TRAIT "armwrestling_trait"

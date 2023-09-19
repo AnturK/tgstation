@@ -213,3 +213,8 @@
 	database_id = MEDAL_DEBT_EXTINGUISHED
 	icon = "outdebted"
 
+/datum/award/achievement/misc/gorilla_arms
+	name = "Gorilla Arms"
+	desc = "I've paid my dues, shift after shift... I've done my sentence but commited no griff..."
+	database_id = MEDAL_GORILLA_ARMS
+	icon = "gorilla_arm"

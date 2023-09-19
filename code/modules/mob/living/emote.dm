@@ -712,3 +712,32 @@
 	message = "says a swear word!"
 	message_mime = "makes a rude gesture!"
 	emote_type = EMOTE_AUDIBLE
+
+/datum/emote/living/arm_wrestle
+	key = "armwrestle"
+	key_third_person = "armwrestles"
+	message = "gets ready to arm wrestle."
+	message_param = "challenges %t to an arm wrestling match."
+	hands_use_check = TRUE
+	emote_type = EMOTE_VISIBLE | EMOTE_AUDIBLE
+
+/datum/emote/living/arm_wrestle/can_run_emote(mob/user, status_check, intentional)
+	. = ..()
+	if(!status_check)
+		return .
+
+	//This is kinda annoying,
+	var/datum/arm_wrestling_challenge/challenge = new
+	if(!challenge.is_valid_participant(user, intentional))
+		return FALSE
+
+/datum/emote/living/arm_wrestle/run_emote(mob/user, params, type_override, intentional)
+	message_param = initial(message_param) // reset
+	if(ishuman(user))
+		var/mob/living/carbon/human/H = user
+		if(H.usable_hands == 0)
+			return
+	var/datum/arm_wrestling_challenge/challenge = new
+	challenge.start(user)
+	challenge.designate_table_action.Trigger() //Speeds setting up a bit
+	return ..()

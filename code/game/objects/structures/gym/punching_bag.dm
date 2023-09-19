@@ -43,8 +43,7 @@
 		return
 	flick("[icon_state]-punch", src)
 	playsound(loc, pick(hit_sounds), 25, TRUE, -1)
-	user.add_mood_event("exercise", /datum/mood_event/exercise)
-	user.apply_status_effect(/datum/status_effect/exercised)
+	user.exercise(EXERCISE_TYPE_ARMS, 1) // Don't want to actually add click cooldown here since the sound is funny
 
 /obj/structure/punching_bag/wrench_act_secondary(mob/living/user, obj/item/tool)
 	tool.play_tool_sound(src)

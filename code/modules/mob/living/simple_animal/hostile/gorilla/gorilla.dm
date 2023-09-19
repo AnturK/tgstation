@@ -43,6 +43,15 @@
 	var/list/gorilla_overlays[GORILLA_TOTAL_LAYERS]
 	var/oogas = 0
 
+/mob/living/simple_animal/hostile/gorilla/Initialize(mapload)
+	. = ..()
+	AddComponent(/datum/component/custom_arm_wrestler, 400, 100, NONE)
+	RegisterSignal(src, COMSIG_ARMWRESTLING_LOST, PROC_REF(check_armwrestling_achievement))
+
+/mob/living/simple_animal/hostile/gorilla/proc/check_armwrestling_achievement(datum/source, mob/winner, mob/loser, victory_type)
+	if(victory_type != ARM_WRESTLING_VICTORY_SURRENDER && winner.client)
+		winner.client.give_award(/datum/award/achievement/misc/gorilla_arms, winner)
+
 // Gorillas like to dismember limbs from unconscious mobs.
 // Returns null when the target is not an unconscious carbon mob; a list of limbs (possibly empty) otherwise.
 /mob/living/simple_animal/hostile/gorilla/proc/get_target_bodyparts(atom/hit_target)

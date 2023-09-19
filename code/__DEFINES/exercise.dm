@@ -1,0 +1,1 @@
+#define EXERCISE_TYPE_ARMS 1

@@ -116,6 +116,14 @@
 
 	biological_state = BIO_STANDARD_JOINTED
 
+	/// Arm-wrestling stats & training progress
+	var/datum/arm_wrestling_properties/arm_wrestling_properties
+
+/obj/item/bodypart/arm/Initialize(mapload)
+	. = ..()
+	arm_wrestling_properties = new
+	arm_wrestling_properties.setup(src)
+
 /obj/item/bodypart/arm/Destroy()
 	QDEL_NULL(worn_glove_offset)
 	QDEL_NULL(held_hand_offset)

@@ -662,3 +662,17 @@
 	to_chat(firer, span_green("You deliver a chef's kiss over [target], declaring it perfect."))
 	target.visible_message(span_notice("[firer] delivers a chef's kiss over [target]."), ignored_mobs = firer)
 	target.reagents.add_reagent(/datum/reagent/love, clamp(amount_nutriment / 4, 1, 10)) // clamped to about half of the most dense food I think we have (super bite burger)
+
+
+/obj/item/hand_item/arm_wrestling_filler
+	name = "arm wrestling"
+	icon = 'icons/effects/arm_wrestling.dmi'
+	icon_state = "filler"
+	inhand_icon_state = "nothing"
+	force = 0
+	throwforce = 0
+	item_flags = DROPDEL | ABSTRACT | HAND_ITEM
+
+/obj/item/hand_item/arm_wrestling_filler/Initialize(mapload)
+	. = ..()
+	ADD_TRAIT(src, TRAIT_NODROP, TRAIT_GENERIC)

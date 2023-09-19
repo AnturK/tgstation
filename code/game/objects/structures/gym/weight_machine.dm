@@ -98,8 +98,7 @@
 			user.balloon_alert(user, pick(finished_silicon_message))
 		else
 			user.balloon_alert(user, pick(finished_message))
-		user.add_mood_event("exercise", /datum/mood_event/exercise)
-		user.apply_status_effect(/datum/status_effect/exercised)
+		user.exercise(EXERCISE_TYPE_ARMS, 10 SECONDS)
 	end_workout()
 
 /obj/structure/weightmachine/proc/end_workout()

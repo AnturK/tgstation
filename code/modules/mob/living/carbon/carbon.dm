@@ -1435,3 +1435,10 @@
 	our_splatter.blood_dna_info = get_blood_dna_list()
 	var/turf/targ = get_ranged_target_turf(src, splatter_direction, splatter_strength)
 	our_splatter.fly_towards(targ, splatter_strength)
+
+
+/mob/living/carbon/exercise(exercise_type = NONE, duration)
+	. = ..()
+	if(exercise_type & EXERCISE_TYPE_ARMS)
+		for(var/obj/item/bodypart/arm/arm in bodyparts)
+			arm.arm_wrestling_properties.handle_training(duration)
