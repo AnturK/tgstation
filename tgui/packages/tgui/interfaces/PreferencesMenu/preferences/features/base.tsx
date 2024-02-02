@@ -53,7 +53,7 @@ export type FeatureValueProps<
 > = Readonly<{
   act: typeof sendAct;
   featureId: string;
-  handleSetValue: (newValue: TSending) => void;
+  handleSetValue: (newValue: TSending, setignorePrediction?: boolean) => void;
   serverData: TServerData | undefined;
   shrink?: boolean;
   value: TReceiving;
@@ -63,6 +63,7 @@ export const FeatureColorInput = (props: FeatureValueProps<string>) => {
   return (
     <Button
       onClick={() => {
+        props.handleSetValue(props.value, true);
         props.act('set_color_preference', {
           preference: props.featureId,
         });
@@ -85,7 +86,9 @@ export const FeatureColorInput = (props: FeatureValueProps<string>) => {
                   }
                 : {}),
             }}
-          />
+          >
+            {typeof props.serverData}
+          </Box>
         </Stack.Item>
 
         {!props.shrink && <Stack.Item>Change</Stack.Item>}
@@ -348,8 +351,12 @@ export const FeatureValueInput = (props: {
   const feature = props.feature;
 
   const [predictedValue, setPredictedValue] = useState(props.value);
+  const [ignorePrediction, setignorePrediction] = useState(false);
 
-  const changeValue = (newValue: unknown) => {
+  const changeValue = (newValue: unknown, ignore_prediction: boolean) => {
+    if (ignore_prediction) {
+      setignorePrediction(true);
+    }
     setPredictedValue(newValue);
     createSetPreference(props.act, props.featureId)(newValue);
   };
@@ -368,7 +375,7 @@ export const FeatureValueInput = (props: {
           shrink: props.shrink,
 
           handleSetValue: changeValue,
-          value: predictedValue,
+          value: ignorePrediction ? props.value : predictedValue,
         });
       }}
     />
