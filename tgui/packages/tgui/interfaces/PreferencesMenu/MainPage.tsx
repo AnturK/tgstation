@@ -357,6 +357,7 @@ export const PreferenceList = (props: {
   preferences: Record<string, unknown>;
   randomizations: Record<string, RandomSetting>;
   maxHeight: string;
+  serverData: ServerData | undefined;
 }) => {
   return (
     <Stack.Item
@@ -384,10 +385,16 @@ export const PreferenceList = (props: {
               );
             }
 
+            const catalog =
+              props.serverData &&
+              (props.serverData[featureId] as FeatureChoicedServerData & {
+                name: string;
+              });
+
             return (
               <LabeledList.Item
                 key={featureId}
-                label={feature.name}
+                label={catalog?.name ?? feature.name}
                 tooltip={feature.description}
                 verticalAlign="middle"
               >
@@ -613,6 +620,7 @@ export const MainPage = (props: { openSpecies: () => void }) => {
                     )}
                     preferences={contextualPreferences}
                     maxHeight="auto"
+                    serverData={serverData}
                   />
 
                   <PreferenceList
@@ -624,6 +632,7 @@ export const MainPage = (props: { openSpecies: () => void }) => {
                     )}
                     preferences={nonContextualPreferences}
                     maxHeight="auto"
+                    serverData={serverData}
                   />
                 </Stack>
               </Stack.Item>

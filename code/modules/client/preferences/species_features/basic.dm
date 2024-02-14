@@ -7,7 +7,7 @@
 	var/icon/final_icon = new(head_icon)
 	if (!isnull(sprite_accessory))
 		ASSERT(istype(sprite_accessory))
-		
+
 		var/icon/head_accessory_icon = icon(sprite_accessory.icon, sprite_accessory.icon_state)
 		if(y_offset)
 			head_accessory_icon.Shift(NORTH, y_offset)
@@ -154,6 +154,7 @@
 	return data
 
 /datum/preference/choiced/hair_gradient
+	main_feature_name = "Test"
 	priority = PREFERENCE_PRIORITY_BODYPARTS
 	category = PREFERENCE_CATEGORY_SECONDARY_FEATURES
 	savefile_identifier = PREFERENCE_CHARACTER
