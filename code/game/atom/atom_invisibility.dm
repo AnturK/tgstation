@@ -58,6 +58,9 @@
 		return
 
 	var/list/priority_data = invisibility_sources[id]
+	if(!priority_data)
+		stack_trace("Trying to remove nonexistent invisibility source. Id:[id]")
+		return
 	invisibility_sources -= id
 
 	if(length(invisibility_sources) == 0)

@@ -9,6 +9,14 @@
 	//spew now off cooldown shortly
 	StartCooldownOthers(1.5 SECONDS)
 
+
+/datum/action/cooldown/mob_cooldown/resurface/IsAvailable(feedback)
+	. = ..()
+	if(. && HAS_TRAIT(owner, TRAIT_BURROWING))
+		if(feedback)
+			owner.balloon_alert(owner, "already burrowing")
+		return FALSE
+
 /datum/action/cooldown/mob_cooldown/resurface/proc/burrow(mob/living/burrower, atom/target)
 	var/turf/unburrow_turf = get_unburrow_turf(burrower, target)
 	if(!unburrow_turf) // means all the turfs nearby are station turfs or something, not lavaland
@@ -22,10 +30,12 @@
 	burrower.status_flags |= GODMODE
 	burrower.SetInvisibility(INVISIBILITY_MAXIMUM, id=type)
 	burrower.forceMove(unburrow_turf)
+	ADD_TRAIT(burrower,TRAIT_BURROWING, type)
 	//not that it's gonna die with godmode but still
 	SLEEP_CHECK_DEATH(rand(0.7 SECONDS, 1.2 SECONDS), burrower)
 	playsound(burrower, 'sound/effects/break_stone.ogg', 50, TRUE)
 	new /obj/effect/temp_visual/mook_dust(unburrow_turf)
+	REMOVE_TRAIT(burrower,TRAIT_BURROWING, type)
 	burrower.status_flags &= ~GODMODE
 	burrower.RemoveInvisibility(type)
 
@@ -84,6 +94,13 @@
 	desc = "Burrow underground, and then move to your target to consume them. Short cooldown, but your target must be unconscious."
 	shared_cooldown = MOB_SHARED_COOLDOWN_2
 
+/datum/action/cooldown/mob_cooldown/devour/IsAvailable(feedback)
+	. = ..()
+	if(. && HAS_TRAIT(owner, TRAIT_BURROWING))
+		if(feedback)
+			owner.balloon_alert(owner, "already burrowing")
+		return FALSE
+
 /datum/action/cooldown/mob_cooldown/devour/Activate(atom/target_atom)
 	if(target_atom == owner)
 		to_chat(owner, span_warning("You can't eat yourself!"))
@@ -106,6 +123,7 @@
 	new /obj/effect/temp_visual/mook_dust(get_turf(devourer))
 	devourer.status_flags |= GODMODE
 	devourer.SetInvisibility(INVISIBILITY_MAXIMUM, id=type)
+	ADD_TRAIT(devourer,TRAIT_BURROWING, type)
 	devourer.forceMove(devour_turf)
 	//not that it's gonna die with godmode but still
 	SLEEP_CHECK_DEATH(rand(0.7 SECONDS, 1.2 SECONDS), devourer)
@@ -113,6 +131,7 @@
 	new /obj/effect/temp_visual/mook_dust(devour_turf)
 	devourer.status_flags &= ~GODMODE
 	devourer.RemoveInvisibility(type)
+	REMOVE_TRAIT(devourer,TRAIT_BURROWING, type)
 	if(!(target in devour_turf))
 		to_chat(devourer, span_warning("Someone stole your dinner!"))
 		return
