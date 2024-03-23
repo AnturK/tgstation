@@ -1,3 +1,6 @@
+import { debounce } from 'common/timer';
+import { useState } from 'react';
+
 import { Icon, Input, Stack } from '../../components';
 
 type RequiredProps = {
@@ -20,6 +23,8 @@ type OptionalProps = Partial<{
 
 type Props = RequiredProps & OptionalProps;
 
+const inputDebounce = debounce((onInput: () => void) => onInput(), 250);
+
 /**
  * Simple component for searching.
  * This component does not accept box props - just recreate it if needed
@@ -34,17 +39,21 @@ export function SearchBar(props: Props) {
     style,
   } = props;
 
+  const [internal, setInternal] = useState(query);
+
   return (
     <Stack fill style={style}>
       <Stack.Item>{!noIcon && <Icon name="search" />}</Stack.Item>
       <Stack.Item grow>
         <Input
           autoFocus={autoFocus}
-          expensive
           fluid
-          onInput={(e, value) => onSearch(value)}
+          onInput={(e, value) => {
+            setInternal(value);
+            inputDebounce(() => onSearch(value));
+          }}
           placeholder={placeholder}
-          value={query}
+          value={internal}
         />
       </Stack.Item>
     </Stack>

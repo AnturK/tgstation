@@ -6,21 +6,12 @@
 
 import { KEY } from 'common/keys';
 import { classes } from 'common/react';
-import { debounce } from 'common/timer';
 import { KeyboardEvent, SyntheticEvent, useEffect, useRef } from 'react';
 
 import { Box, BoxProps } from './Box';
 
 type ConditionalProps =
   | {
-      /**
-       * Mark this if you want to debounce onInput.
-       *
-       * This is useful for expensive filters, large lists etc.
-       *
-       * Requires `onInput` to be set.
-       */
-      expensive?: boolean;
       /**
        * Fires on each key press / value change. Used for searching.
        *
@@ -29,8 +20,6 @@ type ConditionalProps =
       onInput: (event: SyntheticEvent<HTMLInputElement>, value: string) => void;
     }
   | {
-      /** This prop requires onInput to be set */
-      expensive?: never;
       onInput?: never;
     };
 
@@ -71,8 +60,6 @@ export function toInputValue(value: string | number | undefined) {
     : String(value);
 }
 
-const inputDebounce = debounce((onInput: () => void) => onInput(), 250);
-
 /**
  * ### Input
  * A basic text input which allow users to enter text into a UI.
@@ -85,7 +72,6 @@ export function Input(props: Props) {
     autoSelect,
     className,
     disabled,
-    expensive,
     fluid,
     maxLength,
     monospace,
@@ -103,14 +89,8 @@ export function Input(props: Props) {
 
   function handleInput(event: SyntheticEvent<HTMLInputElement>) {
     if (!onInput) return;
-
     const value = event.currentTarget?.value;
-
-    if (expensive) {
-      inputDebounce(() => onInput(event, value));
-    } else {
-      onInput(event, value);
-    }
+    onInput(event, value);
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -166,6 +146,7 @@ export function Input(props: Props) {
         disabled={disabled}
         maxLength={maxLength}
         onBlur={(event) => onChange?.(event, event.target.value)}
+        value={value}
         onChange={handleInput}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}

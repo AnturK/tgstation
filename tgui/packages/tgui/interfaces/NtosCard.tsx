@@ -1,4 +1,5 @@
 import { BooleanLike } from 'common/react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useBackend } from '../backend';
 import {
@@ -132,10 +133,54 @@ export const NtosCardContent = (props) => {
   );
 };
 
+// Used for state that will generally be what it is being set to,
+// but can be interrupted by other players, requiring a reset.
+// This is meant to simulate multiple people typing on a single keyboard.
+// In the future, this should replay inputs, which are currently dropped.
+// Used for state that will generally be what it is being set to,
+// but can be interrupted by other players, requiring a reset.
+// This is meant to simulate multiple people typing on a single keyboard.
+// In the future, this should replay inputs, which are currently dropped.
+function useInterruptibleState(
+  fromServer,
+  sendToServer, // Fired every change to ensure that you never update the value without also sending an act
+) {
+  const [value, setValue] = useState(fromServer);
+  const awaitingActionsRef = useRef([]);
+  const setValueAndSend = useCallback(
+    (value) => {
+      awaitingActionsRef.current.push(value);
+      sendToServer(value);
+      setValue(value);
+    },
+    [sendToServer],
+  );
+
+  useEffect(() => {
+    const sentByUsIndex = awaitingActionsRef.current.findIndex(
+      (awaitingValue) => awaitingValue === fromServer,
+    );
+    if (sentByUsIndex !== -1) {
+      awaitingActionsRef.current.splice(0, sentByUsIndex + 1);
+    } else {
+      // Desync
+      setValue(fromServer);
+    }
+  }, [fromServer]);
+
+  return [value, setValueAndSend];
+}
+
 const IdCardPage = (props) => {
   const { act, data } = useBackend<Data>();
   const { authenticatedUser, id_rank, id_owner, has_id, id_age, authIDName } =
     data;
+
+  const [test, setTest] = useInterruptibleState(id_owner, (value) =>
+    act('PRG_edit', {
+      name: value,
+    }),
+  );
 
   return (
     <Section
@@ -181,12 +226,10 @@ const IdCardPage = (props) => {
             <Stack.Item grow={1} mr={1} ml={1}>
               <Input
                 width="100%"
-                value={id_owner}
-                onChange={(e, value) =>
-                  act('PRG_edit', {
-                    name: value,
-                  })
-                }
+                value={test}
+                onInput={(e, value) => {
+                  setTest(value);
+                }}
               />
             </Stack.Item>
             <Stack.Item>
