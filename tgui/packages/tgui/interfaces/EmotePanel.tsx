@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { BooleanLike } from '../../common/react';
 import { capitalizeFirst } from '../../common/string';
 import { useBackend } from '../backend';
-import { Box, Button, Flex, Icon, Section } from '../components';
+import { Box, Button, Flex, Icon, Input, Section, Stack } from '../components';
+import { DmIcon } from '../components/DmIcon';
 import { Window } from '../layouts';
 import { SearchBar } from './common/SearchBar';
 
@@ -43,8 +44,31 @@ export const EmotePanelContent = (props) => {
 
   const [showIcons, toggleShowIcons] = useState(false);
 
+  const [debugIcon, setDebugIcon] = useState('icons/obj/devices/tool.dmi');
+  const [debugState, setDebugState] = useState('wrong');
+
   return (
     <Section>
+      <Section title="Image debug">
+        <Stack vertical>
+          <Input
+            value={debugIcon}
+            onInput={(_, value) => setDebugIcon(value)}
+            fluid
+          />
+          <Input
+            value={debugState}
+            onInput={(_, value) => setDebugState(value)}
+            fluid
+          />
+          <DmIcon
+            icon={debugIcon}
+            icon_state={debugState}
+            width="128px"
+            height="128px"
+          />
+        </Stack>
+      </Section>
       <Section
         title="Filters"
         buttons={
